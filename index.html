@@ -1,0 +1,1384 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zaino Smart</title>
+<meta name="theme-color" content="#141a46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zaino Smart">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&family=Atkinson+Hyperlegible:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font:'Lexend',system-ui,sans-serif; --fs:19px; --ls:.03em; --lh:1.8;
+  --bg1:#141a46; --bg2:#4a1f7a; --accent:#ffcc33; --accent2:#33d6ff;
+  --card:rgba(255,255,255,.10); --cardB:rgba(255,255,255,.20);
+  --ink:#fff; --paper:#fdf6e3; --paperInk:#1e1e2a; --ok:#3ddc84; --bad:#ff5c7a;
+}
+body[data-theme=calcio]{--bg1:#0b5d2a;--bg2:#17a34a;--accent:#fff35c;--accent2:#fff}
+body[data-theme=oceano]{--bg1:#03396c;--bg2:#0e8fa8;--accent:#ffd166;--accent2:#7cf5d9}
+body[data-theme=gaming]{--bg1:#07070f;--bg2:#2a0845;--accent:#39ff14;--accent2:#ff2fd6}
+body[data-theme=vulcano]{--bg1:#2b0a0a;--bg2:#b3361b;--accent:#ffd23f;--accent2:#ffb38a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--font); font-size:var(--fs); letter-spacing:var(--ls); line-height:1.55; color:var(--ink); min-height:100vh;
+  background:
+    radial-gradient(2px 2px at 20% 30%,#ffffffaa,transparent 60%),
+    radial-gradient(1.5px 1.5px at 70% 15%,#ffffffcc,transparent 60%),
+    radial-gradient(2px 2px at 45% 75%,#ffffff88,transparent 60%),
+    radial-gradient(1px 1px at 85% 55%,#ffffffcc,transparent 60%),
+    radial-gradient(1.5px 1.5px at 8% 88%,#ffffff99,transparent 60%),
+    linear-gradient(160deg,var(--bg1),var(--bg2));
+  background-size:240px 240px,240px 240px,240px 240px,240px 240px,240px 240px,100% 100%;
+  background-attachment:fixed;
+}
+body[data-theme=calcio]{background:repeating-linear-gradient(90deg,#ffffff0d 0 70px,transparent 70px 140px),linear-gradient(170deg,var(--bg1),var(--bg2));background-attachment:fixed}
+body[data-theme=oceano]{background:radial-gradient(circle at 20% 110%,#ffffff22 0 120px,transparent 121px),radial-gradient(circle at 90% 0%,#ffffff18 0 200px,transparent 201px),linear-gradient(180deg,var(--bg2),var(--bg1));background-attachment:fixed}
+body[data-theme=gaming]{background:linear-gradient(#ff2fd610 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,#39ff1410 1px,transparent 1px) 0 0/40px 40px,linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed}
+body[data-theme=vulcano]{background:radial-gradient(ellipse at 50% 120%,#ff8c00aa,transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2));background-attachment:fixed}
+/* tema Blocchi: mondo a cubetti, cielo di sera e terreno d'erba in basso */
+body[data-theme=blocchi]{--bg1:#121a33;--bg2:#2b4f8c;--accent:#62d84e;--accent2:#7fe3ff;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 24' shape-rendering='crispEdges'%3E%3Crect width='16' height='24' fill='%238b5a2b'/%3E%3Crect width='16' height='5' fill='%235fb44a'/%3E%3Cpath fill='%233f8f32' d='M0 5h2v2H0zM5 5h1v1H5zM9 5h3v1H9zM14 5h2v3h-2zM3 2h1v1H3zM11 1h1v1h-1z'/%3E%3Cpath fill='%236b4220' d='M2 9h2v2H2zM8 11h1v1H8zM12 14h2v2h-2zM4 17h1v2H4zM10 20h2v1h-2zM1 22h1v1H1z'/%3E%3Cpath fill='%23a0703c' d='M6 8h1v1H6zM13 10h1v1h-1zM1 14h2v1H1zM7 16h2v1H7zM14 19h1v1h-1zM5 21h1v1H5z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 30' shape-rendering='crispEdges'%3E%3Cg fill='%23ffffff' fill-opacity='.16'%3E%3Crect x='10' y='8' width='30' height='8'/%3E%3Crect x='16' y='4' width='16' height='4'/%3E%3Crect x='70' y='16' width='36' height='8'/%3E%3Crect x='78' y='12' width='18' height='4'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60' shape-rendering='crispEdges'%3E%3Cg fill='%23ffffff'%3E%3Crect x='7' y='9' width='1' height='1'/%3E%3Crect x='41' y='4' width='1' height='1' fill-opacity='.7'/%3E%3Crect x='25' y='33' width='1' height='1' fill-opacity='.5'/%3E%3Crect x='52' y='45' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg,var(--bg1),var(--bg2));
+  background-size:64px 96px,600px 150px,240px 240px,100% 100%;
+  background-position:left bottom,0 30px,0 0,0 0;
+  background-repeat:repeat-x,repeat-x,repeat,no-repeat;
+  background-attachment:fixed;
+}
+body[data-theme=blocchi] :is(.card,.stat,.qbtn,.hero,.item,.task,.btn,.tabs button,.toolbar,.toolbar button,.subj,.paper,.mapbox,.pill,.back,.modal,.bookview,.progress,.progress div,input,select,textarea){border-radius:4px}
+body[data-theme=blocchi] :is(.card,.stat,.qbtn,.item,.task){background:#0b1020c4;border:2px solid #ffffff2e}
+body[data-theme=blocchi] :is(.btn,.qbtn,.stat,.subj,.tabs button,.pill){box-shadow:inset -4px -4px 0 #00000055,inset 4px 4px 0 #ffffff33}
+/* niente font pixel: per un lettore dislessico Z/2 e B/8 si confondono. Solo ombra squadrata */
+body[data-theme=blocchi] :is(h1,h2,.logo,.stat b){text-shadow:3px 3px 0 #000a}
+body.has-bg{background:linear-gradient(#000a,#0008),var(--custombg) center/cover no-repeat fixed}
+
+a{color:var(--accent2)}
+h1{font-size:1.6em;margin:.2em 0 .4em;line-height:1.2}
+h2{font-size:1.2em;margin:1.2em 0 .5em}
+h3{margin:.2em 0 .6em}
+.wrap{min-height:100vh}
+main{padding:12px 16px 110px;max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px 0;max-width:1000px;margin:0 auto}
+.logo{font-weight:800;font-size:1.15em;flex:1}
+.pill{background:var(--card);border:1px solid var(--cardB);border-radius:99px;padding:4px 14px;font-weight:600;white-space:nowrap}
+
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#000000b3;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+nav a{flex:1;text-align:center;color:#fff;text-decoration:none;padding:8px 2px 10px;font-size:12px;letter-spacing:0;border-top:3px solid transparent}
+nav a i{display:block;font-style:normal;font-size:26px;line-height:1.2}
+nav a.on{color:var(--accent);border-top-color:var(--accent)}
+@media(min-width:900px){
+  nav{top:0;right:auto;width:112px;flex-direction:column;justify-content:center;gap:6px;padding:0}
+  nav a{border-top:0;border-left:4px solid transparent;font-size:14px;padding:12px 4px}
+  nav a.on{border-left-color:var(--accent)}
+  .wrap{padding-left:112px}
+  main{padding-bottom:40px}
+}
+
+.btn{background:var(--accent);color:#1a1a2e;border:0;border-radius:14px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer;min-height:48px;letter-spacing:0;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn.alt{background:var(--card);color:#fff;border:2px solid var(--cardB)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn:active{transform:scale(.97)}
+.ico{background:none;border:0;font-size:1.3em;cursor:pointer;padding:6px;min-width:44px;min-height:44px;color:inherit}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.card{background:var(--card);border:1px solid var(--cardB);border-radius:20px;padding:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.hint{opacity:.85;font-size:.85em}
+.empty{opacity:.85;text-align:center;padding:20px}
+label{display:block;margin:10px 0;font-weight:600}
+input,select,textarea{font:inherit;letter-spacing:inherit;padding:10px 12px;border-radius:12px;border:2px solid var(--cardB);background:#fffffff2;color:#1e1e2a;width:100%;margin-top:4px}
+input[type=checkbox]{width:26px;height:26px;vertical-align:middle;margin:0 8px 0 0}
+input[type=range]{padding:0;accent-color:var(--accent)}
+input[type=color]{height:52px;padding:4px}
+textarea{line-height:var(--lh);resize:vertical}
+
+.bar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar h1{flex:1;margin:0}
+.back{font-size:1.4em;text-decoration:none;background:var(--card);border-radius:12px;padding:4px 12px;color:#fff}
+input.title{background:transparent;border:0;border-bottom:2px dashed var(--cardB);color:#fff;font-size:1.3em;font-weight:600;border-radius:0;margin:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;position:sticky;top:0;z-index:5;background:#00000066;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:6px;border-radius:14px}
+.toolbar button{background:#ffffffe6;color:#1e1e2a;border:0;border-radius:10px;min-height:44px;min-width:44px;padding:4px 10px;font:inherit;font-size:.85em;cursor:pointer;letter-spacing:0}
+.toolbar button.hl{background:var(--accent)}
+.toolbar button.rec{background:var(--bad);color:#fff;animation:pulse 1s infinite}
+.toolbar .sep{flex-basis:0;width:1px}
+.toolbar span.pg{align-self:center;padding:0 6px;cursor:pointer;text-decoration:underline dotted}
+@keyframes pulse{50%{opacity:.6}}
+
+.paper{background:var(--paper);color:var(--paperInk);border-radius:16px;padding:20px;line-height:var(--lh);font-size:calc(var(--fs) * var(--z,1));box-shadow:0 8px 30px #0004;word-spacing:.12em}
+.paper.doc{min-height:55vh;outline:none}
+.paper.doc:focus{box-shadow:0 0 0 4px var(--accent),0 8px 30px #0004}
+.paper h2{margin-top:.4em}
+/* formati del foglio: le righe distano 1.8em, come l'interlinea, così il testo ci sta sopra */
+.paper.doc:is(.righe,.quadretti,.quadrettoni){background-origin:content-box}
+.paper.doc:is(.righe,.quadretti,.quadrettoni) :is(p,div,h2,h3,ul,ol,li){margin:0;line-height:inherit}
+.paper.doc:is(.righe,.quadretti,.quadrettoni) h2{font-size:1em;text-transform:uppercase}
+.paper.doc.righe{padding-left:56px;
+  background-image:linear-gradient(90deg,transparent 40px,#f08a8a 40px,#f08a8a 42px,transparent 42px),linear-gradient(transparent calc(1.8em - 1px),#a9c7e6 calc(1.8em - 1px));
+  background-size:100% 100%,100% 1.8em;background-repeat:no-repeat,repeat;background-origin:border-box,content-box}
+/* a quadretti: carattere a larghezza fissa, ogni lettera o cifra occupa esattamente un quadretto (lato --q) */
+.paper.doc:is(.quadretti,.quadrettoni){--q:1.1em;font-size:calc(var(--fs) * var(--z,1) * 1.2);font-family:'Atkinson Hyperlegible Mono','Courier New',monospace;line-height:var(--q);letter-spacing:calc(var(--q) - 1ch);word-spacing:0;
+  background-image:linear-gradient(#bcd5ef 1px,transparent 1px),linear-gradient(90deg,#bcd5ef 1px,transparent 1px);background-size:var(--q) var(--q);background-position:calc((1ch - var(--q)) / 2) 0}
+.paper.doc.quadrettoni{--q:1.15em;font-size:calc(var(--fs) * var(--z,1) * 1.6)}
+.cdisp{background:#0b1020;border:2px solid #ffffff2e;border-radius:12px;padding:10px 16px;text-align:right;font-family:'Atkinson Hyperlegible Mono',monospace;min-height:100px}
+.cexpr{font-size:1.4em;word-break:break-all;min-height:1.5em;letter-spacing:.05em}
+.cres{font-size:2.1em;font-weight:700;color:var(--accent);min-height:1.3em}
+.cres.prov{opacity:.5;font-size:1.4em}
+.ckeys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.ckeys button{min-height:58px;font-family:'Atkinson Hyperlegible Mono',monospace;font-size:1.45em;font-weight:700;border:0;border-radius:12px;background:#ffffffeb;color:#1e1e2a;cursor:pointer;box-shadow:inset -3px -3px 0 #0003}
+.ckeys button:active{transform:scale(.95)}
+.ckeys .op{background:#7fe3ff}
+.ckeys .eq{background:var(--accent)}
+.ckeys .cl{background:var(--bad);color:#fff}
+.chist button{display:block;width:100%;text-align:right;background:none;border:0;border-bottom:1px solid #ffffff22;color:#fff;font-family:'Atkinson Hyperlegible Mono',monospace;font-size:1em;padding:6px 4px;cursor:pointer}
+/* schede incollate sul quaderno: pagina a quadretti, foto leggermente storte con lo scotch */
+.incollate{background-color:var(--paper);background-image:linear-gradient(#bcd5ef 1px,transparent 1px),linear-gradient(90deg,#bcd5ef 1px,transparent 1px);background-size:22px 22px;border-radius:12px;padding:26px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:30px 22px;margin-top:12px}
+.incollata{position:relative;display:block;background:#fff;padding:6px 6px 8px;box-shadow:0 4px 10px #0004;color:#1e1e2a;text-decoration:none;transform:rotate(-1.6deg);transition:transform .2s}
+.incollata:nth-child(even){transform:rotate(1.4deg)}
+.incollata:hover{transform:rotate(0) scale(1.03)}
+.incollata::before{content:"";position:absolute;top:-12px;left:50%;width:70px;height:22px;margin-left:-35px;background:#fff6b3cc;box-shadow:0 1px 3px #0003;transform:rotate(2deg)}
+.incollata img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#eee}
+.incollata b{display:block;font-size:.8em;margin-top:6px;line-height:1.3}
+.incollata small{font-size:.7em;opacity:.7}
+.sheetbox{overflow:auto;max-height:78vh;border-radius:12px;background:#0005;-webkit-overflow-scrolling:touch}
+.sheetwrap{position:relative;margin:0 auto}
+.sheetwrap canvas{position:absolute;inset:0;width:100%;height:100%}
+.sheetwrap canvas.ink.draw{touch-action:none;cursor:crosshair}
+.toolbar button.on{outline:3px solid var(--accent);outline-offset:-3px;background:#fff}
+.sw{width:30px;height:30px;border-radius:50%!important;padding:0!important;min-width:30px!important;min-height:30px!important;align-self:center;border:3px solid #fff!important}
+.sw.on{outline:3px solid var(--accent)}
+.toolbar select{width:auto;margin:0;min-height:44px;padding:4px 8px;font-size:.85em;border-radius:10px;border:0}
+
+.hero{border-radius:24px;padding:22px;display:flex;gap:18px;align-items:center;min-height:180px;position:relative;overflow:hidden;background-size:cover;background-position:center;box-shadow:0 10px 30px #0005}
+.hero .big{font-size:88px;line-height:1;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 6px 10px #0005)}
+.hero q{font-size:1.25em;font-weight:600;quotes:none;text-shadow:0 2px 8px #0006;display:block}
+.hero .hb{position:absolute;right:10px;top:8px;display:flex}
+.hero.photo{min-height:260px;align-items:flex-end}
+.hero.photo q{background:#000a;padding:10px 14px;border-radius:14px}
+@media(max-width:600px){
+  .hero{flex-direction:column;text-align:center;padding:44px 16px 20px;gap:10px;min-height:0}
+  .hero .big{font-size:64px}
+  .hero q{font-size:1.1em}
+  .stat{padding:10px 4px}
+  .stat b{font-size:1.25em}
+  .stat span{font-size:.7em;display:block;line-height:1.3}
+}
+@keyframes float{50%{transform:translateY(-10px) rotate(-4deg)}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.stat{background:var(--card);border:1px solid var(--cardB);border-radius:18px;padding:12px;text-align:center}
+.stat b{display:block;font-size:1.5em}
+.stat span{font-size:.8em;opacity:.9}
+.quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.qbtn{background:var(--card);border:2px solid var(--cardB);border-radius:18px;padding:16px 8px;text-align:center;color:#fff;font:inherit;font-size:2em;cursor:pointer;text-decoration:none;display:block;margin:0}
+.qbtn span{display:block;font-size:.45em;font-weight:600;margin-top:4px}
+.qbtn:hover{border-color:var(--accent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.subj{border-radius:20px;padding:16px;text-decoration:none;color:#1e1e2a;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 6px 18px #0004;position:relative;overflow:hidden}
+.subj::after{content:"";position:absolute;right:-20px;bottom:-20px;width:80px;height:80px;border-radius:50%;background:#ffffff40}
+.subj .e{font-size:2.2em}
+.subj b{font-size:1.05em}
+.subj small{opacity:.75}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:6px 0 12px;padding-bottom:4px}
+.tabs button{background:var(--card);color:#fff;border:2px solid var(--cardB);border-radius:99px;padding:8px 16px;font:inherit;font-size:.9em;white-space:nowrap;cursor:pointer;min-height:44px}
+.tabs button.on{background:var(--accent);color:#1a1a2e;border-color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--cardB);border-radius:16px;padding:12px 14px;color:#fff;text-decoration:none}
+.item .ie{font-size:1.6em}
+.item b{display:block}
+.item small{opacity:.75}
+
+.task{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--cardB);border-left:6px solid var(--sc,#fff);border-radius:14px;padding:6px 6px 6px 4px;margin:6px 0}
+.task .tt{flex:1;min-width:0}
+.task .tt b{display:block;font-size:.8em;opacity:.9}
+.task .due{font-size:.8em;background:#0004;padding:3px 10px;border-radius:99px;white-space:nowrap}
+.task.late .due{background:var(--bad)}
+.task.today .due{background:var(--accent);color:#1a1a2e}
+.task.done .tt span{text-decoration:line-through;opacity:.6}
+.check{font-size:1.6em}
+
+.mapbox{background:var(--paper);border-radius:16px;overflow:auto;max-height:72vh;box-shadow:0 8px 30px #0004;-webkit-overflow-scrolling:touch}
+.mapbox g[data-id]{cursor:pointer}
+.bookview{background:#0005;border-radius:16px;overflow:auto;text-align:center;max-height:78vh}
+.bookview canvas,.bookview img{display:block;margin:0 auto;background:#fff}
+
+.overlay{position:fixed;inset:0;background:#000c;z-index:50;overflow:auto;padding:16px;display:flex;align-items:flex-start;justify-content:center}
+.modal{width:100%;max-width:560px;background:#1f2350f2;margin-top:4vh}
+.reader{display:block;padding:10px}
+.reader .inner{max-width:900px;margin:0 auto}
+.rbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:0;z-index:2;background:#000c;padding:8px;border-radius:14px;margin-bottom:10px}
+.rbar label{display:flex;align-items:center;gap:6px;margin:0;flex:1;min-width:180px}
+.rbar label input{margin:0}
+.s{cursor:pointer;border-radius:6px;transition:background .2s}
+.s.on{background:#fff59d}
+.w.on{background:#ffb74d;border-radius:4px;box-shadow:0 0 0 2px #ffb74d}
+
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#111e;color:#fff;padding:12px 20px;border-radius:14px;z-index:99;max-width:90vw;text-align:center;box-shadow:0 6px 20px #0008;animation:tin .3s}
+@keyframes tin{from{opacity:0;transform:translate(-50%,20px)}}
+.confetti{position:fixed;top:-50px;font-size:32px;z-index:98;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.progress{height:14px;background:#0005;border-radius:99px;overflow:hidden;margin:8px 0}
+.progress div{height:100%;background:var(--accent);width:0;transition:width .3s}
+.themes{display:flex;flex-wrap:wrap;gap:8px}
+.themes button{border:3px solid transparent;border-radius:14px;padding:10px 14px;color:#fff;font:inherit;cursor:pointer;min-height:48px}
+.themes button.on{border-color:var(--accent)}
+.emojis{display:flex;flex-wrap:wrap}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumbs div{position:relative}
+.thumbs img{width:90px;height:90px;object-fit:cover;border-radius:12px}
+.thumbs button{position:absolute;top:-6px;right:-6px;background:var(--bad);color:#fff;border:0;border-radius:50%;width:28px;height:28px;cursor:pointer}
+@media print{
+  body{background:#fff!important}
+  nav,header,.toolbar,.bar,.hint{display:none!important}
+  .wrap{padding:0}
+  .paper{box-shadow:none;background-color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body data-theme="blocchi">
+<div class="wrap">
+  <header><span class="logo">🎒 Zaino Smart</span><span class="pill" title="Diamanti e livello">💎 <b id="stars">0</b> · Liv. <b id="lvl">1</b></span></header>
+  <main id="main"></main>
+</div>
+<nav id="nav">
+  <a href="#home" data-r="home"><i>🏠</i>Home</a>
+  <a href="#materie" data-r="materie"><i>🎒</i>Materie</a>
+  <a href="#leggi" data-r="leggi"><i>🔊</i>Leggi</a>
+  <a href="#compiti" data-r="compiti"><i>📝</i>Compiti</a>
+  <a href="#impostazioni" data-r="impostazioni"><i>⚙️</i>Opzioni</a>
+</nav>
+
+<script>
+/* ===================== utilità ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const today = () => isoDay(new Date());
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return isoDay(d); };
+const GIORNI = ['dom','lun','mar','mer','gio','ven','sab'];
+const MESI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function fmtDue(due){
+  if (due === today()) return 'oggi';
+  if (due === addDays(1)) return 'domani';
+  const d = new Date(due + 'T12:00');
+  const s = `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`;
+  return due < today() ? 'scaduto ' + s : s;
+}
+const fmtDate = ts => { const d = new Date(ts); return `${d.getDate()} ${MESI[d.getMonth()]} ${d.getFullYear()}`; };
+function toast(msg, ms = 3000){ const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+// avviso con un bottone (es. Annulla), resta qualche secondo in più per dare tempo di toccarlo
+function toastAction(msg, label, fn, ms = 10000){
+  const t = document.createElement('div'); t.className = 'toast'; t.style.display = 'flex'; t.style.gap = '12px'; t.style.alignItems = 'center';
+  t.innerHTML = `<span>${esc(msg)}</span><button class="btn" style="min-height:40px;padding:6px 14px">${esc(label)}</button>`;
+  t.querySelector('button').onclick = () => { t.remove(); fn(); };
+  document.body.appendChild(t); setTimeout(() => t.remove(), ms);
+}
+function download(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name.replace(/[\\/:*?"<>|]/g, '_'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+const blobToDataURL = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
+const loadedScripts = {};
+function loadScript(src){
+  return loadedScripts[src] ||= new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.onload = res;
+    s.onerror = () => { delete loadedScripts[src]; rej(new Error('Serve la connessione a internet per questa funzione.')); };
+    document.head.appendChild(s);
+  });
+}
+function modal(inner){
+  const ov = document.createElement('div'); ov.className = 'overlay';
+  ov.innerHTML = `<div class="modal card"><div style="text-align:right;margin:-8px -8px 0 0"><button class="ico" data-close>✖</button></div>${inner}</div>`;
+  ov.onclick = e => { if (e.target === ov || e.target.closest('[data-close]')) ov.remove(); };
+  document.body.appendChild(ov); return ov;
+}
+
+/* ===================== archivio (IndexedDB, resta sul dispositivo) ===================== */
+let dbp;
+function db(){ return dbp ||= new Promise((res, rej) => { const r = indexedDB.open('zainosmart', 1); r.onupgradeneeded = () => r.result.createObjectStore('items', {keyPath: 'id'}); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function tx(mode, fn){ const d = await db(); return new Promise((res, rej) => { const t = d.transaction('items', mode); const req = fn(t.objectStore('items')); t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error); }); }
+const put = o => tx('readwrite', s => s.put(o));
+const del = id => tx('readwrite', s => s.delete(id));
+const get = id => tx('readonly', s => s.get(id));
+const all = async kind => (await tx('readonly', s => s.getAll())).filter(o => !kind || o.kind === kind);
+async function subjects(){ return (await all('subject')).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)); }
+async function subjMap(){ return Object.fromEntries((await subjects()).map(s => [s.id, s])); }
+
+/* ===================== impostazioni ===================== */
+const S = {name:'', theme:'blocchi', font:'Lexend', fs:19, ls:3, rate:0.9, voice:'', registro:'axios', registroUrl:'', stars:0, bgId:null, lastText:'', cfgV:3};
+const REGISTRI = {
+  classeviva:{n:'ClasseViva', u:'https://web.spaggiari.eu/'},
+  argo:{n:'Argo Famiglia', u:'https://www.portaleargo.it/'},
+  nuvola:{n:'Nuvola', u:'https://nuvola.madisoft.it/'},
+  axios:{n:'Axios Famiglia', u:'https://registrofamiglie.axioscloud.it/'},
+  altro:{n:'Registro', u:''}
+};
+// ogni compito fatto vale 1 diamante, ogni 5 diamanti si sale di livello
+const XP_LIV = 5;
+const livello = () => Math.floor(S.stars / XP_LIV) + 1;
+async function loadSettings(){
+  const s = await get('settings'); if (s) Object.assign(S, s.v);
+  else S.cfgV = 2; // mai salvate: controllo comunque le materie (Geometria) all'avvio
+  // impostazioni salvate dalla prima versione: registro della scuola = Axios, tema = Blocchi
+  if (s && (s.v.cfgV || 1) < 2){
+    if (S.registro === 'classeviva') S.registro = 'axios';
+    if (S.theme === 'spazio') S.theme = 'blocchi';
+    S.cfgV = 2; await put({id:'settings', kind:'settings', v:S});
+  }
+  await applySettings();
+}
+let setTimer;
+function saveSettings(){ clearTimeout(setTimer); setTimer = setTimeout(() => put({id:'settings', kind:'settings', v:S}), 300); applySettings(); }
+let bgUrl;
+async function applySettings(){
+  document.body.dataset.theme = S.theme;
+  const r = document.documentElement.style;
+  r.setProperty('--font', `'${S.font}',system-ui,sans-serif`);
+  r.setProperty('--fs', S.fs + 'px');
+  r.setProperty('--ls', (S.ls / 100) + 'em');
+  $('#stars').textContent = S.stars; $('#lvl').textContent = livello();
+  if (S.bgId){
+    const img = await get(S.bgId);
+    if (img){ if (bgUrl) URL.revokeObjectURL(bgUrl); bgUrl = URL.createObjectURL(img.blob); document.body.style.setProperty('--custombg', `url(${bgUrl})`); document.body.classList.add('has-bg'); return; }
+  }
+  document.body.classList.remove('has-bg');
+}
+
+/* ===================== voce: lettura ad alta voce ===================== */
+function itVoice(){
+  const v = speechSynthesis.getVoices();
+  return v.find(x => x.name === S.voice) || v.find(x => x.lang.startsWith('it') && /Google|Alice|Federica|Elsa|Luca/i.test(x.name)) || v.find(x => x.lang.startsWith('it'));
+}
+function utter(text){ const u = new SpeechSynthesisUtterance(text); u.lang = 'it-IT'; const v = itVoice(); if (v) u.voice = v; u.rate = S.rate; return u; }
+function speak(text){ if (!('speechSynthesis' in window)) return toast('Questo browser non sa leggere ad alta voce.'); stopReader(); speechSynthesis.speak(utter(text)); }
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+
+function wordsHTML(s){ return s.replace(/\S+/g, w => `<span class="w">${esc(w)}</span>`); }
+function toSentences(text){
+  let k = 0;
+  return String(text).split(/\n+/).filter(p => p.trim()).map(p =>
+    '<p>' + (p.match(/[^.!?;]+[.!?;]*[»"')\]]*\s*|[.!?;]+\s*/g) || [p]).map(s => `<span class="s" data-i="${k++}">${wordsHTML(s)}</span>`).join('') + '</p>'
+  ).join('');
+}
+const R = {sents:[], i:0, playing:false, cur:null, ov:null};
+function openReader(text, title){
+  text = String(text || '').trim();
+  if (!text) return toast('Non c\'è ancora nessun testo da leggere.');
+  closeReader();
+  const ov = document.createElement('div'); ov.className = 'overlay reader';
+  ov.innerHTML = `<div class="inner">
+    <div class="rbar">
+      <button class="btn" id="rPlay">▶️ Ascolta</button>
+      <button class="btn alt" id="rStop">⏹</button>
+      <label>🐢<input type="range" min="0.5" max="1.5" step="0.1" value="${S.rate}" id="rRate">🐇</label>
+      <button class="btn alt" id="rZm">A−</button><button class="btn alt" id="rZp">A+</button>
+      <button class="btn alt" id="rClose">✖ Chiudi</button>
+    </div>
+    <div class="paper" id="rText">${title ? `<h2>${esc(title)}</h2>` : ''}${toSentences(text)}</div>
+    <p class="hint">👆 Tocca una frase per ascoltarla da lì. La frase letta si colora di giallo.</p></div>`;
+  document.body.appendChild(ov);
+  R.ov = ov; R.sents = [...ov.querySelectorAll('.s')]; R.i = 0; R.playing = false;
+  const box = ov.querySelector('#rText'); let z = 1.1; box.style.setProperty('--z', z);
+  ov.querySelector('#rPlay').onclick = () => R.playing ? pauseReader() : playFrom(R.i);
+  ov.querySelector('#rStop').onclick = () => { pauseReader(); R.i = 0; mark(-1); };
+  ov.querySelector('#rClose').onclick = closeReader;
+  ov.querySelector('#rRate').oninput = e => { S.rate = +e.target.value; saveSettings(); if (R.playing) playFrom(R.i); };
+  ov.querySelector('#rZm').onclick = () => box.style.setProperty('--z', z = Math.max(.8, z - .15));
+  ov.querySelector('#rZp').onclick = () => box.style.setProperty('--z', z += .15);
+  box.onclick = e => { const s = e.target.closest('.s'); if (s) playFrom(+s.dataset.i); };
+}
+function mark(i){ R.sents.forEach((s, k) => s.classList.toggle('on', k === i)); if (R.sents[i]) R.sents[i].scrollIntoView({block:'center', behavior:'smooth'}); }
+function playFrom(i){
+  if (!('speechSynthesis' in window)) return toast('Questo browser non sa leggere ad alta voce.');
+  R.cur = null; speechSynthesis.cancel(); R.playing = true;
+  const b = R.ov && R.ov.querySelector('#rPlay'); if (b) b.textContent = '⏸ Pausa';
+  speakIdx(i);
+}
+function speakIdx(i){
+  if (i >= R.sents.length){ pauseReader(); R.i = 0; mark(-1); toast('Finito! Bravo! 🎉'); return; }
+  R.i = i; mark(i);
+  const sp = R.sents[i], txt = sp.textContent, ws = [...sp.querySelectorAll('.w')];
+  let pos = 0; const offs = ws.map(w => { const o = txt.indexOf(w.textContent, pos); pos = o + w.textContent.length; return o; });
+  const u = utter(txt);
+  u.onboundary = e => { if (e.name && e.name !== 'word') return; let j = 0; offs.forEach((o, k) => { if (o <= e.charIndex) j = k; }); ws.forEach(w => w.classList.remove('on')); if (ws[j]) ws[j].classList.add('on'); };
+  u.onend = () => { ws.forEach(w => w.classList.remove('on')); if (R.playing && R.cur === u) speakIdx(i + 1); };
+  R.cur = u; speechSynthesis.speak(u);
+}
+function pauseReader(){ R.playing = false; R.cur = null; if ('speechSynthesis' in window) speechSynthesis.cancel(); const b = R.ov && R.ov.querySelector('#rPlay'); if (b) b.textContent = '▶️ Ascolta'; }
+function stopReader(){ pauseReader(); }
+function closeReader(){ pauseReader(); if (R.ov){ R.ov.remove(); R.ov = null; } }
+
+/* ===================== dettato vocale ===================== */
+let rec = null, recBtn = null;
+function toggleDictation(target, btn){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return toast('Il dettato vocale non è disponibile qui. Prova con Chrome.');
+  if (rec){ stopDictation(); return; }
+  rec = new SR(); rec.lang = 'it-IT'; rec.continuous = true; rec.interimResults = false;
+  recBtn = btn; if (btn){ btn.dataset.label = btn.innerHTML; btn.innerHTML = '⏹ Basta'; btn.classList.add('rec'); }
+  rec.onresult = e => {
+    for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) insertDictated(target, e.results[i][0].transcript.trim());
+  };
+  rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ toast('Devi permettere l\'uso del microfono.'); stopDictation(); } };
+  rec.onend = () => { if (rec) try { rec.start(); } catch (_) {} };
+  try { rec.start(); toast('🎤 Parla pure, scrivo io!'); } catch (_) { stopDictation(); }
+}
+function stopDictation(){ const r = rec; rec = null; if (r) try { r.stop(); } catch (_) {} if (recBtn){ recBtn.innerHTML = recBtn.dataset.label; recBtn.classList.remove('rec'); recBtn = null; } }
+function insertDictated(el, t){
+  if (!t) return;
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){ el.value = (el.value ? el.value.replace(/\s*$/, ' ') : '') + t; el.dispatchEvent(new Event('input')); return; }
+  el.focus();
+  const sel = getSelection();
+  if (!sel.rangeCount || !el.contains(sel.anchorNode)){ const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); sel.removeAllRanges(); sel.addRange(r); }
+  document.execCommand('insertText', false, t + ' ');
+}
+
+/* ===================== scansione testo (OCR) ===================== */
+async function toCanvas(src){
+  if (src instanceof HTMLCanvasElement) return src;
+  const bmp = await createImageBitmap(src);
+  const k = Math.min(1, 2200 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  const x = c.getContext('2d'); x.filter = 'grayscale(1) contrast(1.25)'; x.drawImage(bmp, 0, 0, c.width, c.height);
+  return c;
+}
+function cleanText(t){
+  return t.replace(/\r/g, '').replace(/-\n(\p{L})/gu, '$1').replace(/([^\n.!?:»"])\n(?!\n)/g, '$1 ').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+}
+async function ocr(src, statusEl){
+  const say = (msg, p) => { if (statusEl) statusEl.innerHTML = `<p>${msg}</p>${p != null ? `<div class="progress"><div style="width:${Math.round(p * 100)}%"></div></div>` : ''}`; };
+  say('⏳ Preparo il lettore di testo... (la prima volta ci mette un po\')', 0);
+  await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+  const c = await toCanvas(src);
+  const res = await Tesseract.recognize(c, 'ita', {logger: m => { if (m.status === 'recognizing text') say('🔎 Sto leggendo la pagina...', m.progress); else say('⏳ ' + ({'loading language traineddata':'Scarico il vocabolario italiano...','initializing api':'Quasi pronto...'}[m.status] || 'Preparo...'), m.progress); }});
+  if (statusEl) statusEl.innerHTML = '';
+  return cleanText(res.data.text);
+}
+
+/* ===================== frasi e immagini motivazionali ===================== */
+const FRASI = [
+  'Ogni pagina letta è XP in più. ⛏️',
+  'Anche i pro hanno iniziato dal livello 1. 🎮',
+  'Sbagliare è solo un respawn: riprova! 🔄',
+  'Un blocco alla volta si costruisce un castello. 🧱',
+  'Scava a fondo: i diamanti stanno sempre giù. 💎',
+  'Prima i compiti, poi si gioca: il loot è più bello. 🎁',
+  'La mappa si scopre esplorando. 🗺️',
+  'Il tuo cervello ha una mod speciale: usala! ⚡',
+  'Barra della fame vuota? Pausa, snack e si riparte! 🍗',
+  'Ascoltare è un modo di leggere che vale uguale. 🎧',
+  'Oggi meglio di ieri: level up! 🚀',
+  'Non serve fare speedrun, serve finire la partita. 🏁',
+  'Chiedere aiuto è giocare in co-op, non barare. 🤝',
+  'Gli errori sono indizi, non game over. 🔍',
+  'Hai già battuto boss più difficili di questo. ⚔️'
+];
+/* icone pixel art disegnate qui (nessuna immagine esterna): ogni lettera è un colore */
+const PIX = {
+  diamante: {p:{X:'#0b3d3a',L:'#4be3d6',W:'#e9fffd',D:'#1fa59b'}, g:[
+    '....XXXX....','...XLLLLX...','..XLWLLLLX..','.XLWLLLLLLX.','XLLLLLLLLDDX','.XDLLLLLDDX.','..XDLLLDDX..','...XDLDDX...','....XDDX....','.....XX.....']},
+  spada: {p:{X:'#1a1a1a',L:'#9ef0ff',W:'#ffffff',G:'#f2c94c',H:'#7a4a1e'}, g:[
+    '..........XX','.........XWX','........XWLX','.......XWLX.','......XWLX..','.XX..XWLX...','.XGXXWLX....','..XGGLX.....','..XHXGGX....','.XHX.XGX....','XHX...X.....','XX..........']},
+  piccone: {p:{X:'#1a1a1a',L:'#4be3d6',D:'#1fa59b',H:'#8b5a2b'}, g:[
+    '...XXXXXX...','..XLLLLLLX..','.XLDXXXXDLX.','XLDX.XHX.XDX','XLX..XHX..XX','XX..XHX.....','....XHX.....','...XHX......','...XHX......','..XHX.......','..XHX.......','..XX........']},
+  cuore: {p:{X:'#1a1a1a',R:'#ff3b4e',W:'#ffd6db',D:'#b3122a'}, g:[
+    '.XX...XX.','XRRX.XRRX','XRWRXRRRX','XRRRRRRRX','XDRRRRRDX','.XDRRRDX.','..XDRDX..','...XDX...','....X....']},
+  baule: {p:{X:'#2b1a0a',B:'#a0682f',D:'#6b4220',G:'#c9c9c9',K:'#f2c94c'}, g:[
+    'XXXXXXXXXXXX','XBBBBBBBBBBX','XBDDDDDDDDBX','XBBBBBBBBBBX','XXXXXKKXXXXX','XBBBBKKBBBBX','XBBBBBBBBBBX','XBDDDDDDDDBX','XBBBBBBBBBBX','XXXXXXXXXXXX']},
+  torcia: {p:{X:'#1a1a1a',Y:'#ffe14d',O:'#ff9a1f',H:'#8b5a2b'}, g:[
+    '...Y....','..YOY...','..XOOX..','..XHHX..','...HH...','...HH...','...HH...','...HH...','...HH...','...XX...']}
+};
+function pixSvg(k){
+  const {p, g} = PIX[k]; let r = '';
+  g.forEach((row, y) => [...row].forEach((c, x) => { if (p[c]) r += `<rect x="${x}" y="${y}" width="1.05" height="1.05" fill="${p[c]}"/>`; }));
+  return `<svg viewBox="0 0 ${g[0].length} ${g.length}" width="96" height="${Math.round(96 * g.length / g[0].length)}" shape-rendering="crispEdges">${r}</svg>`;
+}
+const SCENE = [['pix:diamante','#0f2027','#2c5364'],['pix:spada','#232526','#414345'],['pix:piccone','#3e2723','#795548'],['pix:cuore','#200122','#6f0000'],['pix:baule','#1d4350','#a43931'],['pix:torcia','#0f0c29','#302b63'],['🎮','#8e44ad','#2c3e50'],['🏆','#f39c12','#6b3e00'],['🕹️','#141e30','#243b55'],['🗺️','#134e5e','#71b280'],['⚔️','#1f1c2c','#928dab'],['🚀','#000428','#004e92']];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+let heroUrl;
+async function showHero(){
+  const el = $('#hero'); if (!el) return;
+  const frase = pick(FRASI);
+  const foto = (await all('img')).filter(i => i.role === 'motiv');
+  if (heroUrl){ URL.revokeObjectURL(heroUrl); heroUrl = null; }
+  const btns = `<div class="hb"><button class="ico" title="Ascolta" onclick="speak(this.closest('.hero').querySelector('q').textContent)">🔊</button><button class="ico" title="Un'altra" onclick="showHero()">🔄</button></div>`;
+  if (foto.length && Math.random() < .5){
+    heroUrl = URL.createObjectURL(pick(foto).blob);
+    el.className = 'hero photo'; el.style.background = `url(${heroUrl}) center/cover`;
+    el.innerHTML = `<q>${esc(frase)}</q>${btns}`;
+  } else {
+    const [e, c1, c2] = pick(SCENE);
+    el.className = 'hero'; el.style.background = `radial-gradient(circle at 15% 50%,#ffffff33,transparent 40%),linear-gradient(135deg,${c1},${c2})`;
+    el.innerHTML = `<div class="big">${e.startsWith('pix:') ? pixSvg(e.slice(4)) : e}</div><q>${esc(frase)}</q>${btns}`;
+  }
+}
+function celebrate(levelUp){
+  const em = ['💎','⛏️','🏆','✨','🔥','🎮','🧱'];
+  for (let i = 0; i < 24; i++){
+    const s = document.createElement('div'); s.className = 'confetti'; s.textContent = pick(em);
+    s.style.left = Math.random() * 100 + 'vw'; s.style.animationDuration = (1.5 + Math.random() * 1.5) + 's'; s.style.animationDelay = Math.random() * .4 + 's';
+    document.body.appendChild(s); setTimeout(() => s.remove(), 3500);
+  }
+  if (levelUp) return toast(`🎮 LEVEL UP! Sei al livello ${livello()}! 🏆`, 4000);
+  toast(pick(['Achievement sbloccato! +1 💎','Missione completata! +1 💎','GG! Un compito in meno! +1 💎','Bel colpo! +1 💎']));
+}
+
+/* ===================== router ===================== */
+let leaveHook = null;
+async function render(){
+  if (leaveHook){ const h = leaveHook; leaveHook = null; await h(); }
+  stopDictation();
+  const [r, id] = (location.hash.slice(1) || 'home').split('/');
+  const sezione = ['materia','doc','mappa','libro','scheda'].includes(r) ? 'materie' : r;
+  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.r === sezione));
+  const views = {home:vHome, materie:vMaterie, materia:vMateria, doc:vDoc, mappa:vMappa, libro:vLibro, scheda:vScheda, leggi:vLeggi, compiti:vCompiti, impostazioni:vImpostazioni};
+  const m = $('#main');
+  await (views[r] || vHome)(m, id);
+  window.scrollTo(0, 0);
+}
+
+/* ===================== HOME ===================== */
+async function vHome(m){
+  const sm = await subjMap();
+  const tasks = (await all('task')).filter(t => !t.done).sort((a, b) => a.due.localeCompare(b.due));
+  const ora = new Date().getHours();
+  const saluto = ora < 13 ? 'Buongiorno' : ora < 18 ? 'Ciao' : 'Buonasera';
+  m.innerHTML = `<h1>${saluto}${S.name ? ' ' + esc(S.name) : ''}! 👋</h1>
+    <section class="hero" id="hero"></section>
+    <div class="stats">
+      <div class="stat"><b>Liv. ${livello()}</b><div class="progress" title="Diamanti per il prossimo livello"><div style="width:${(S.stars % XP_LIV) / XP_LIV * 100}%"></div></div><span>💎 ${S.stars % XP_LIV}/${XP_LIV} al prossimo</span></div>
+      <div class="stat"><b>${tasks.filter(t => t.due <= today()).length}</b><span>compiti per oggi</span></div>
+      <div class="stat"><b>${tasks.length}</b><span>compiti in tutto</span></div>
+    </div>
+    <h2>🚀 Cosa facciamo?</h2>
+    <div class="quick">
+      <a class="qbtn" href="#leggi">📷<span>Leggimi una pagina</span></a>
+      <a class="qbtn" href="#compiti">📝<span>I miei compiti</span></a>
+      <a class="qbtn" href="#materie">📓<span>Quaderni</span></a>
+      <button class="qbtn" onclick="quickNew('mappa')">🧠<span>Nuova mappa</span></button>
+      <button class="qbtn" onclick="quickNew('doc')">✍️<span>Scrivi</span></button>
+      <a class="qbtn" href="#materie">📚<span>I miei libri</span></a>
+    </div>
+    <h2>📅 Prossimi compiti</h2>
+    ${tasks.length ? tasks.slice(0, 5).map(t => taskRow(t, sm)).join('') : '<p class="empty card">Nessun compito in arrivo. Goditi il tempo libero! 🎉</p>'}`;
+  showHero();
+}
+async function quickNew(tipo){
+  const subs = await subjects();
+  const ov = modal(`<h2>${tipo === 'mappa' ? '🧠 Nuova mappa' : '✍️ Nuova pagina'}</h2><p>Per quale materia?</p><div class="grid">${subs.map(s => `<button class="subj" style="background:${s.color};border:0;font:inherit;cursor:pointer;min-height:90px" data-s="${s.id}"><span class="e">${s.emoji}</span><b>${esc(s.name)}</b></button>`).join('')}</div>`);
+  ov.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { ov.remove(); tipo === 'mappa' ? newMap(b.dataset.s) : newDoc(b.dataset.s); });
+}
+
+/* ===================== MATERIE ===================== */
+const EMOJI_MATERIE = ['📖','➗','📐','🏛️','🌍','🔬','🇬🇧','🇫🇷','🇪🇸','🗣️','⚙️','💻','🎨','🎵','⚽','✝️','🧪','🌱','📘','⭐'];
+async function vMaterie(m){
+  const subs = await subjects();
+  const items = await all();
+  const conta = id => items.filter(i => i.subjectId === id && i.kind !== 'task').length;
+  m.innerHTML = `<h1>🎒 Le mie materie</h1><p class="hint">Ogni materia è un quaderno: dentro trovi pagine, mappe, libri e compiti.</p>
+    <div class="grid">${subs.map(s => `<a class="subj" href="#materia/${s.id}" style="background:${s.color}"><span class="e">${s.emoji}</span><span><b>${esc(s.name)}</b><br><small>${conta(s.id)} elementi</small></span></a>`).join('')}
+    <button class="subj" style="background:var(--card);color:#fff;border:2px dashed var(--cardB);font:inherit;cursor:pointer" onclick="subjectModal()"><span class="e">➕</span><b>Nuova materia</b></button></div>`;
+}
+function subjectModal(s){
+  const ov = modal(`<h2>${s ? 'Modifica materia' : 'Nuova materia'}</h2>
+    <label>Nome<input id="sn" value="${esc(s?.name || '')}" placeholder="Es. Matematica"></label>
+    <label>Simbolo<input id="se" value="${esc(s?.emoji || '📘')}" maxlength="8"></label>
+    <div class="emojis">${EMOJI_MATERIE.map(e => `<button class="ico" data-e="${e}">${e}</button>`).join('')}</div>
+    <label>Colore<input id="sc" type="color" value="${s?.color || '#74b9ff'}"></label>
+    <div class="row"><button class="btn" id="ssave">💾 Salva</button>${s ? '<button class="btn danger" id="sdel">🗑️ Elimina materia</button>' : ''}</div>`);
+  ov.querySelectorAll('[data-e]').forEach(b => b.onclick = () => ov.querySelector('#se').value = b.dataset.e);
+  ov.querySelector('#ssave').onclick = async () => {
+    const name = ov.querySelector('#sn').value.trim(); if (!name) return toast('Scrivi il nome della materia.');
+    const o = s || {id: uid(), kind: 'subject', order: Date.now()};
+    Object.assign(o, {name, emoji: ov.querySelector('#se').value.trim() || '📘', color: ov.querySelector('#sc').value});
+    await put(o); ov.remove(); render();
+  };
+  if (s) ov.querySelector('#sdel').onclick = async () => {
+    if (!confirm(`Eliminare "${s.name}" e tutto quello che c'è dentro (pagine, mappe, libri, compiti)?`)) return;
+    for (const it of (await all()).filter(i => i.subjectId === s.id)) await del(it.id);
+    await del(s.id); ov.remove(); location.hash = 'materie';
+  };
+}
+async function editSubject(id){ subjectModal(await get(id)); }
+
+let subTab = 'quaderno';
+async function vMateria(m, id){
+  const s = await get(id); if (!s){ location.hash = 'materie'; return; }
+  const items = (await all()).filter(i => i.subjectId === id);
+  const tabs = [['quaderno','📓','Quaderno'],['schede','📎','Schede'],['mappe','🧠','Mappe'],['libri','📚','Libri'],['compiti','📝','Compiti']];
+  m.innerHTML = `<div class="bar"><a class="back" href="#materie">⬅</a><h1>${s.emoji} ${esc(s.name)}</h1><button class="ico" title="Modifica" onclick="editSubject('${id}')">✏️</button></div>
+    <div class="tabs">${tabs.map(t => `<button class="${subTab === t[0] ? 'on' : ''}" onclick="subTab='${t[0]}';render()">${t[1]} ${t[2]}</button>`).join('')}${isMath(s) ? '<button onclick="openCalc()">🧮 Calcolatrice</button>' : ''}</div><div id="tabc"></div>`;
+  const c = $('#tabc');
+  const vuoto = msg => `<p class="empty card">${msg}</p>`;
+  if (subTab === 'quaderno'){
+    const docs = items.filter(i => i.kind === 'doc').sort((a, b) => b.updated - a.updated);
+    c.innerHTML = `<button class="btn" onclick="newDoc('${id}')">➕ Nuova pagina</button>
+      <div class="list">${docs.map(d => `<a class="item" href="#doc/${d.id}"><span class="ie">📄</span><span><b>${esc(d.title || 'Senza titolo')}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Il quaderno è vuoto. Scrivi la prima pagina! ✍️')}</div>`;
+  } else if (subTab === 'schede'){
+    const sh = items.filter(i => i.kind === 'sheet').sort((a, b) => b.added - a.added);
+    c.innerHTML = `<div class="row" style="margin-top:0">
+        <label class="btn" style="margin:0">📷 Fotografa una scheda<input type="file" accept="image/*" capture="environment" hidden onchange="addSheet(this,'${id}')"></label>
+        <label class="btn alt" style="margin:0">🖼️ Scegli una foto<input type="file" accept="image/*" hidden onchange="addSheet(this,'${id}')"></label></div>
+      <p class="hint">Fotografa la scheda che ti dà il prof: poi ci puoi scrivere sopra, evidenziare e farti leggere il testo.</p>
+      ${sh.length ? `<div class="incollate">${sh.map(x => `<a class="incollata" href="#scheda/${x.id}"><img data-thumb="${x.id}" alt=""><b>${esc(x.title)}</b><small>${fmtDate(x.added)}</small></a>`).join('')}</div>` : vuoto('Nessuna scheda incollata. Fotografa la prima! 📎')}`;
+    c.querySelectorAll('[data-thumb]').forEach(img => { const x = sh.find(y => y.id === img.dataset.thumb); const b = x.thumb || x.blob; img.src = URL.createObjectURL(b); });
+  } else if (subTab === 'mappe'){
+    const maps = items.filter(i => i.kind === 'map').sort((a, b) => b.updated - a.updated);
+    c.innerHTML = `<button class="btn" onclick="newMap('${id}')">➕ Nuova mappa</button>
+      <div class="list">${maps.map(d => `<a class="item" href="#mappa/${d.id}"><span class="ie">🧠</span><span><b>${esc(d.title)}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Nessuna mappa. Le mappe aiutano a ricordare gli argomenti! 🧠')}</div>`;
+  } else if (subTab === 'libri'){
+    const books = items.filter(i => i.kind === 'book').sort((a, b) => a.title.localeCompare(b.title));
+    c.innerHTML = `<label class="btn" style="margin:0">➕ Carica libro (PDF o foto)<input type="file" accept="application/pdf,image/*" multiple hidden onchange="addBooks(this,'${id}')"></label>
+      <p class="hint">Puoi caricare il PDF del libro digitale oppure le foto delle pagine.</p>
+      <div class="list">${books.map(b => `<div class="item"><a href="#libro/${b.id}" style="display:flex;gap:12px;align-items:center;flex:1;color:#fff;text-decoration:none"><span class="ie">${b.type === 'pdf' ? '📕' : '🖼️'}</span><span><b>${esc(b.title)}</b><small>${b.type === 'pdf' ? 'PDF' : 'Foto'}, ${(b.blob.size / 1048576).toFixed(1)} MB</small></span></a><button class="ico" onclick="delBook('${b.id}')">🗑️</button></div>`).join('') || vuoto('Nessun libro caricato. 📚')}</div>`;
+  } else {
+    const sm = {[id]: s};
+    const ts = items.filter(i => i.kind === 'task').sort((a, b) => (a.done - b.done) || a.due.localeCompare(b.due));
+    c.innerHTML = `<div class="card">${taskForm([s], id)}</div>${ts.map(t => taskRow(t, sm)).join('') || vuoto('Nessun compito per questa materia. 😎')}`;
+  }
+}
+
+/* ===================== QUADERNO: pagina con controllo ortografico ===================== */
+const FOGLI = [['bianco','⬜ Bianco'],['righe','📏 Righe'],['quadretti','🔲 Quadretti'],['quadrettoni','⬛ Quadrettoni']];
+async function newDoc(sid){
+  const s = await get(sid);
+  const foglio = s && /matem|geometr|tecnolog|scienz/i.test(s.name) ? 'quadretti' : 'righe';
+  const d = {id: uid(), kind: 'doc', subjectId: sid, title: '', html: '', foglio, updated: Date.now()}; await put(d); location.hash = 'doc/' + d.id; }
+let curDoc = null, docTimer = null, docZoom = 1;
+const docEl = () => $('#paper');
+async function saveDoc(){
+  clearTimeout(docTimer); docTimer = null;
+  if (!curDoc || !docEl()) return;
+  curDoc.html = docEl().innerHTML; curDoc.title = $('#dtitle').value.trim(); curDoc.updated = Date.now();
+  await put(curDoc); const st = $('#dsave'); if (st) st.textContent = '✓ Salvato';
+}
+async function vDoc(m, id){
+  curDoc = await get(id); if (!curDoc){ location.hash = 'materie'; return; }
+  const sub = await get(curDoc.subjectId);
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curDoc.subjectId}">⬅</a><input class="title" id="dtitle" value="${esc(curDoc.title)}" placeholder="Scrivi il titolo..." spellcheck="true" lang="it"><span class="hint" id="dsave"></span></div>
+    <div class="toolbar" id="dtools">
+      <button data-c="bold" title="Grassetto"><b>G</b></button><button data-c="italic" title="Corsivo"><i>C</i></button><button data-c="underline" title="Sottolineato"><u>S</u></button>
+      <button data-c="hiliteColor" data-v="#fff176" title="Evidenzia">🖍️</button><button data-c="formatBlock" data-v="h2">Titolo</button><button data-c="formatBlock" data-v="p">Testo</button><button data-c="insertUnorderedList">• Elenco</button>
+      <select id="dfmt" title="Tipo di foglio">${FOGLI.map(([k, n]) => `<option value="${k}" ${(curDoc.foglio || 'bianco') === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      <button class="hl" id="micb">🎤 Detta</button><button id="dread">🔊 Rileggi</button>${isMath(sub) ? '<button id="dcalc" class="hl">🧮 Calcola</button>' : ''}
+      <button id="dzm">A−</button><button id="dzp">A+</button>
+      <button id="dword">⬇️ Word</button><button onclick="window.print()">🖨️</button><button id="ddel">🗑️</button>
+    </div>
+    <div id="paper" class="paper doc ${curDoc.foglio || 'bianco'}" contenteditable="true" spellcheck="true" lang="it" autocapitalize="sentences">${curDoc.html || ''}</div>
+    <p class="hint">✍️ Le parole sbagliate vengono sottolineate in rosso: tocca la parola (sul PC clic destro) per vedere come si scrive. La pagina si salva da sola.</p>`;
+  const p = docEl(); p.style.setProperty('--z', docZoom);
+  const tools = $('#dtools');
+  tools.onmousedown = e => { if (e.target.closest('[data-c]')) e.preventDefault(); };
+  tools.onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; p.focus(); document.execCommand(b.dataset.c, false, b.dataset.v || null); schedule(); };
+  const schedule = () => { $('#dsave').textContent = '...'; clearTimeout(docTimer); docTimer = setTimeout(saveDoc, 700); };
+  p.oninput = schedule; $('#dtitle').oninput = schedule;
+  $('#dfmt').onchange = e => { p.classList.remove(...FOGLI.map(f => f[0])); p.classList.add(curDoc.foglio = e.target.value); schedule(); };
+  $('#micb').onclick = () => toggleDictation(p, $('#micb'));
+  if ($('#dcalc')) $('#dcalc').onclick = () => openCalc(p);
+  $('#dread').onclick = () => openReader(p.innerText, $('#dtitle').value);
+  $('#dzm').onclick = () => p.style.setProperty('--z', docZoom = Math.max(.7, docZoom - .1));
+  $('#dzp').onclick = () => p.style.setProperty('--z', docZoom += .1);
+  $('#dword').onclick = () => { saveDoc(); downloadDoc(); };
+  $('#ddel').onclick = async () => { if (!confirm('Buttare via questa pagina?')) return; clearTimeout(docTimer); await del(curDoc.id); const sid = curDoc.subjectId; curDoc = null; location.hash = 'materia/' + sid; };
+  leaveHook = saveDoc;
+  if (!curDoc.html) $('#dtitle').focus();
+}
+function downloadDoc(){
+  const t = $('#dtitle').value || 'pagina';
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(t)}</title><style>body{font-family:Verdana,sans-serif;font-size:14pt;line-height:1.7}</style></head><body><h1>${esc(t)}</h1>${docEl().innerHTML}</body></html>`;
+  download(new Blob(['﻿', html], {type: 'application/msword'}), t + '.doc');
+}
+window.addEventListener('pagehide', () => { if (docTimer) saveDoc(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && docTimer) saveDoc(); });
+
+/* ===================== CALCOLATRICE (Matematica e Geometria) ===================== */
+const isMath = s => !!s && /matem|geometr|aritmet|algebra/i.test(s.name);
+// calcolo senza eval: + − × : ( ) , % ² √ con le precedenze giuste
+function calcEval(src){
+  const s = src.replace(/\s/g, ''); let i = 0;
+  const expr = () => { let v = term(); while ('+−-'.includes(s[i]) && s[i]){ const o = s[i++], r = term(); v = o === '+' ? v + r : v - r; } return v; };
+  const term = () => { let v = unary(); while (s[i] === '×' || s[i] === ':'){ const o = s[i++], r = unary(); if (o === ':' && r === 0) throw new Error('Non si può dividere per zero'); v = o === '×' ? v * r : v / r; } return v; };
+  const unary = () => { if (s[i] === '−' || s[i] === '-'){ i++; return -unary(); } return post(); };
+  const post = () => { let v = prim(); while (s[i] === '²' || s[i] === '%') v = s[i++] === '²' ? v * v : v / 100; return v; };
+  const prim = () => {
+    if (s[i] === '√'){ i++; const v = post(); if (v < 0) throw new Error('Radice di un numero negativo'); return Math.sqrt(v); }
+    if (s[i] === '('){ i++; const v = expr(); if (s[i] === ')') i++; return v; }
+    const m = s.slice(i).match(/^\d+(,\d*)?/); if (!m) throw new Error('Operazione incompleta'); i += m[0].length;
+    return parseFloat(m[0].replace(',', '.'));
+  };
+  const v = expr(); if (i < s.length) throw new Error('Operazione incompleta');
+  if (!isFinite(v)) throw new Error('Numero troppo grande');
+  return v;
+}
+const fmtNum = v => Number(v.toPrecision(12)).toLocaleString('it-IT', {useGrouping: false, maximumFractionDigits: 10});
+const calcParla = t => t.replace(/\+/g, ' più ').replace(/[−-]/g, ' meno ').replace(/×/g, ' per ').replace(/:/g, ' diviso ').replace(/=/g, ' uguale ').replace(/√/g, ' radice quadrata di ').replace(/²/g, ' al quadrato ').replace(/%/g, ' per cento ').replace(/[()]/g, ' ');
+let calcStoria = [];
+function openCalc(target){
+  const keys = [['C','cl'],['(','op'],[')','op'],['⌫','cl'],['7'],['8'],['9'],[':','op'],['4'],['5'],['6'],['×','op'],['1'],['2'],['3'],['−','op'],['0'],[','],['%','op'],['+','op'],['√','op'],['x²','op'],['🔊','op'],['=','eq']];
+  const ov = modal(`<h2>🧮 Calcolatrice</h2>
+    <div class="cdisp"><div class="cexpr" id="cx"></div><div class="cres" id="cr">0</div></div>
+    <div class="ckeys">${keys.map(([k, c]) => `<button data-k="${k}" class="${c || ''}">${k}</button>`).join('')}</div>
+    <div class="row">${target ? '<button class="btn" id="cins">✏️ Scrivi nel foglio</button>' : ''}<button class="btn alt" id="ccopy">📋 Copia</button></div>
+    <div class="chist" id="ch"></div>`);
+  let ex = '', fatto = false;
+  const cx = ov.querySelector('#cx'), cr = ov.querySelector('#cr');
+  // ricorda dov'era il cursore nel foglio, per scrivere il risultato proprio lì
+  const sel = getSelection();
+  const punto = target && sel.rangeCount && target.contains(sel.anchorNode) ? sel.getRangeAt(0).cloneRange() : null;
+  const show = () => {
+    cx.textContent = ex;
+    if (fatto) return;
+    cr.classList.add('prov');
+    try { cr.textContent = ex ? '= ' + fmtNum(calcEval(ex)) : '0'; } catch (_) { cr.textContent = ''; }
+  };
+  const storia = () => { ov.querySelector('#ch').innerHTML = calcStoria.map((h, k) => `<button data-h="${k}">${esc(h)}</button>`).join(''); };
+  const premi = k => {
+    if (k === 'C'){ ex = ''; fatto = false; return show(); }
+    if (k === '⌫'){ if (fatto){ fatto = false; } ex = [...ex].slice(0, -1).join(''); return show(); }
+    if (k === '🔊') return speak(calcParla(ex + (fatto ? ' = ' + cr.textContent : '')));
+    if (k === '='){
+      if (!ex) return;
+      try { const r = fmtNum(calcEval(ex)); cr.classList.remove('prov'); cr.textContent = r; fatto = true; calcStoria = [`${ex}=${r}`, ...calcStoria].slice(0, 6); storia(); }
+      catch (e){ cr.classList.add('prov'); cr.textContent = e.message; }
+      return;
+    }
+    if (k === 'x²') k = '²';
+    if (fatto){ ex = /[0-9,√(]/.test(k) ? '' : cr.textContent; fatto = false; } // cifra: si riparte, operazione: si continua dal risultato
+    ex += k; show();
+  };
+  ov.querySelector('.ckeys').onclick = e => { const b = e.target.closest('[data-k]'); if (b) premi(b.dataset.k); };
+  ov.querySelector('#ch').onclick = e => { const b = e.target.closest('[data-h]'); if (b){ ex = calcStoria[+b.dataset.h].split('=')[1]; fatto = false; show(); } };
+  const riga = () => fatto ? `${ex}=${cr.textContent}` : ex;
+  ov.querySelector('#ccopy').onclick = () => { navigator.clipboard?.writeText(riga()).then(() => toast('Copiato 📋'), () => {}); };
+  if (target) ov.querySelector('#cins').onclick = () => {
+    const t = riga(); if (!t) return; ov.remove();
+    target.focus(); if (punto){ sel.removeAllRanges(); sel.addRange(punto); }
+    insertDictated(target, t); toast('Scritto nel foglio ✏️');
+  };
+  const tasti = e => {
+    if (!document.body.contains(ov)) return document.removeEventListener('keydown', tasti);
+    const m = {'*':'×','x':'×','/':':','-':'−','.':',','Enter':'=','Backspace':'⌫','Escape':'C','Delete':'C'}[e.key] || e.key;
+    if (/^[0-9+×:−,()%=⌫C]$/.test(m)){ e.preventDefault(); premi(m); }
+  };
+  document.addEventListener('keydown', tasti);
+  storia(); show();
+}
+
+/* ===================== MAPPE ===================== */
+const PALETTE = ['#ff9f43','#54a0ff','#1dd1a1','#ff6b9d','#a29bfe','#feca57','#48dbfb','#ff7675'];
+async function newMap(sid, root){
+  let title = root ? root.text : prompt('Di che argomento è la mappa?', '');
+  if (!title || !title.trim()) return;
+  const m = {id: uid(), kind: 'map', subjectId: sid, title: title.trim(), root: root || {id: uid(), text: title.trim(), children: []}, updated: Date.now()};
+  await put(m); location.hash = 'mappa/' + m.id;
+}
+let curMap = null, selNode = null, mapZoom = 1;
+function findNode(n, id, parent = null){ if (n.id === id) return {n, parent}; for (const c of n.children || []){ const r = findNode(c, id, n); if (r) return r; } return null; }
+function wrapText(t, max){
+  const out = []; let line = '';
+  for (let w of String(t).split(/\s+/).filter(Boolean)){
+    while (w.length > max){ if (line){ out.push(line); line = ''; } out.push(w.slice(0, max - 1) + '-'); w = w.slice(max - 1); }
+    if ((line + ' ' + w).trim().length > max){ out.push(line); line = w; } else line = (line + ' ' + w).trim();
+  }
+  if (line) out.push(line);
+  return out.length ? out : [''];
+}
+const NW = 190, GAPX = 60;
+function layoutMap(root){
+  let y = 0; const nodes = [];
+  (function walk(n, d, color){
+    n._d = d; n._c = n.color || color; n._l = wrapText(n.text, d === 0 ? 15 : 18); n._h = n._l.length * 22 + 22; n._x = d * (NW + GAPX);
+    if (!n.children || !n.children.length){ n._y = y + n._h / 2; y += n._h + 16; }
+    else { n.children.forEach((c, i) => walk(c, d + 1, d === 0 ? PALETTE[i % PALETTE.length] : n._c)); n._y = (n.children[0]._y + n.children[n.children.length - 1]._y) / 2; }
+    nodes.push(n);
+  })(root, 0, '#2d3436');
+  return {nodes, height: y};
+}
+async function saveMap(){ curMap.updated = Date.now(); await put(curMap); }
+function drawMap(){
+  const {nodes, height} = layoutMap(curMap.root);
+  const maxD = Math.max(...nodes.map(n => n._d));
+  const W = maxD * (NW + GAPX) + NW + 40, H = Math.max(height, 60) + 24, ox = 20, oy = 12;
+  let links = '', boxes = '';
+  nodes.forEach(n => (n.children || []).forEach(c => {
+    const x1 = n._x + NW + ox, y1 = n._y + oy, x2 = c._x + ox, y2 = c._y + oy, mx = (x1 + x2) / 2;
+    links += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" stroke="${c._c}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  }));
+  nodes.forEach(n => {
+    const x = n._x + ox, y = n._y + oy - n._h / 2, root = n._d === 0, sel = n.id === selNode;
+    const fill = root ? '#2d3436' : n._d === 1 ? n._c : '#ffffff';
+    const ink = root ? '#ffffff' : '#1e1e2a';
+    boxes += `<g data-id="${n.id}"><rect x="${x}" y="${y}" width="${NW}" height="${n._h}" rx="16" fill="${fill}" stroke="${sel ? '#e84393' : n._c}" stroke-width="${sel ? 6 : 3}"/>` +
+      `<text x="${x + NW / 2}" y="${y + 11 + 16}" text-anchor="middle" font-size="${root ? 18 : 16}" font-weight="${n._d < 2 ? 700 : 400}" fill="${ink}">${n._l.map((l, i) => `<tspan x="${x + NW / 2}" dy="${i ? 22 : 0}">${esc(l)}</tspan>`).join('')}</text></g>`;
+  });
+  $('#mapbox').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W * mapZoom}" height="${H * mapZoom}" viewBox="0 0 ${W} ${H}" font-family="Lexend, Verdana, sans-serif">${links}${boxes}</svg>`;
+  const s = findNode(curMap.root, selNode);
+  $('#msel').innerHTML = s ? `Selezionato: <b>${esc(s.n.text)}</b>. Usa i bottoni qui sopra per aggiungere un ramo o cambiarlo.` : '';
+}
+async function vMappa(m, id){
+  curMap = await get(id); if (!curMap){ location.hash = 'materie'; return; }
+  selNode = curMap.root.id;
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curMap.subjectId}">⬅</a><input class="title" id="mtitle" value="${esc(curMap.title)}"></div>
+    <div class="toolbar">
+      <button class="hl" onclick="mAdd()">➕ Ramo</button><button onclick="mEdit()">✏️ Cambia</button><button onclick="mColor()">🎨 Colore</button><button onclick="mDel()">🗑️ Togli</button><button onclick="mSpeak()">🔊</button>
+      <button onclick="mapZoom=Math.max(.4,mapZoom*.85);drawMap()">🔍−</button><button onclick="mapZoom*=1.15;drawMap()">🔍+</button>
+      <button onclick="mFromText()">📝 Da elenco</button><button onclick="mReadAll()">📖 Leggi tutta</button><button onclick="mPng()">🖼️ Salva foto</button><button onclick="mDelMap()">🗑️ Mappa</button>
+    </div>
+    <p class="hint" id="msel"></p><div class="mapbox" id="mapbox"></div>
+    <p class="hint">👆 Tocca un riquadro per sceglierlo. Doppio tocco per cambiare il testo.</p>`;
+  $('#mtitle').onchange = e => { curMap.title = e.target.value; saveMap(); };
+  const box = $('#mapbox');
+  box.onclick = e => { const g = e.target.closest('[data-id]'); if (g){ selNode = g.dataset.id; drawMap(); } };
+  box.ondblclick = e => { if (e.target.closest('[data-id]')) mEdit(); };
+  mapZoom = 1; drawMap();
+  const W = +box.querySelector('svg').getAttribute('width');
+  if (W > box.clientWidth){ mapZoom = Math.max(.55, box.clientWidth / W); drawMap(); }
+}
+async function mAdd(){
+  const s = findNode(curMap.root, selNode); if (!s) return;
+  const t = prompt(`Nuovo ramo sotto "${s.n.text}":`, ''); if (!t || !t.trim()) return;
+  const c = {id: uid(), text: t.trim(), children: []}; (s.n.children ||= []).push(c);
+  selNode = s.n.id; await saveMap(); drawMap();
+}
+async function mEdit(){ const s = findNode(curMap.root, selNode); if (!s) return; const t = prompt('Scrivi il nuovo testo:', s.n.text); if (t == null || !t.trim()) return; s.n.text = t.trim(); if (!s.parent){ curMap.title = s.n.text; $('#mtitle').value = s.n.text; } await saveMap(); drawMap(); }
+async function mColor(){ const s = findNode(curMap.root, selNode); if (!s || !s.parent) return toast('Scegli prima un ramo.'); const i = PALETTE.indexOf(s.n._c); s.n.color = PALETTE[(i + 1) % PALETTE.length]; await saveMap(); drawMap(); }
+async function mDel(){ const s = findNode(curMap.root, selNode); if (!s || !s.parent) return toast('Il centro della mappa non si può togliere.'); if ((s.n.children || []).length && !confirm('Togliere anche i rami collegati?')) return; s.parent.children = s.parent.children.filter(c => c !== s.n); selNode = s.parent.id; await saveMap(); drawMap(); }
+function mSpeak(){ const s = findNode(curMap.root, selNode); if (s) speak(s.n.text); }
+function mapOutline(n, d = 0){ return (d ? '' : n.text + '.\n') + (n.children || []).map(c => (d ? '' : '') + c.text + ((c.children || []).length ? ': ' + c.children.map(x => x.text + ((x.children || []).length ? ' (' + x.children.map(y => y.text).join(', ') + ')' : '')).join(', ') : '') + '.').join('\n'); }
+function mReadAll(){ openReader(mapOutline(curMap.root), 'Mappa'); }
+async function mDelMap(){ if (!confirm('Buttare via tutta la mappa?')) return; await del(curMap.id); location.hash = 'materia/' + curMap.subjectId; }
+function parseOutline(text, title){
+  const lines = text.split('\n').filter(l => l.trim());
+  if (!lines.length) return null;
+  let rootText = title;
+  if (!rootText){ rootText = lines.shift().replace(/^[-*•\s]+/, '').trim(); }
+  const root = {id: uid(), text: rootText, children: []}; const stack = [root];
+  for (const l of lines){
+    const m = l.match(/^(\s*)([-*•]*)\s*(.*)$/);
+    const lvl = 1 + m[2].length + Math.floor(m[1].replace(/\t/g, '  ').length / 2);
+    const node = {id: uid(), text: m[3].trim(), children: []};
+    while (stack.length > lvl) stack.pop();
+    stack[stack.length - 1].children.push(node); stack.push(node);
+  }
+  return root;
+}
+function mFromText(){
+  const ov = modal(`<h2>📝 Mappa da elenco</h2><p class="hint">Scrivi un ramo per riga. Metti un trattino davanti per fare un sotto-ramo, due trattini per andare ancora più giù.</p>
+    <textarea id="mt" rows="10" placeholder="I Romani&#10;Monarchia&#10;- 7 re&#10;Repubblica&#10;- consoli&#10;- senato&#10;Impero&#10;- Augusto"></textarea>
+    <p class="hint">La prima riga diventa il centro della mappa.</p><div class="row"><button class="btn" id="mok">🧠 Crea la mappa</button><button class="btn alt" id="mmic">🎤 Detta</button></div>`);
+  ov.querySelector('#mmic').onclick = () => toggleDictation(ov.querySelector('#mt'), ov.querySelector('#mmic'));
+  ov.querySelector('#mok').onclick = async () => {
+    stopDictation();
+    const root = parseOutline(ov.querySelector('#mt').value); if (!root) return toast('Scrivi almeno una riga.');
+    if (curMap.root.children.length && !confirm('Sostituire la mappa attuale con questa nuova?')) return;
+    curMap.root = root; curMap.title = root.text; selNode = root.id; $('#mtitle').value = root.text;
+    await saveMap(); ov.remove(); drawMap();
+  };
+}
+function mPng(){
+  const svg = $('#mapbox svg'); const W = +svg.getAttribute('viewBox').split(' ')[2], H = +svg.getAttribute('viewBox').split(' ')[3];
+  const clone = svg.cloneNode(true); clone.setAttribute('width', W); clone.setAttribute('height', H); clone.setAttribute('font-family', 'Verdana, Arial, sans-serif');
+  const img = new Image();
+  img.onload = () => { const c = document.createElement('canvas'); c.width = W * 2; c.height = H * 2; const x = c.getContext('2d'); x.fillStyle = '#fdf6e3'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); c.toBlob(b => download(b, curMap.title + '.png')); };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+}
+
+/* ===================== SCHEDE: foto della scheda + scrittura sopra ===================== */
+async function addSheet(input, sid){
+  const f = input.files[0]; if (!f) return;
+  // foto ridotta a 1800 px al massimo, per non riempire la memoria del telefono
+  const bmp = await createImageBitmap(f), k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .88));
+  const title = (prompt('Come chiamiamo questa scheda?', 'Scheda del ' + fmtDate(Date.now())) || '').trim() || 'Scheda';
+  const sh = {id: uid(), kind: 'sheet', subjectId: sid, title, blob, w: c.width, h: c.height, ops: [], added: Date.now()};
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  await put(sh); input.value = ''; location.hash = 'scheda/' + sh.id;
+}
+let curSheet = null, shImg = null, shTool = 'pen', shColor = '#1e3a8a', shThick = false, shZoom = 1, shTimer = null;
+const SH_COLORI = ['#1e1e2a', '#1e3a8a', '#d62828', '#2a9d4b'];
+const shUnit = () => curSheet.w / 400;
+const shCanvas = k => $('#swrap .' + k);
+function shOp(x, o){
+  x.save();
+  if (o.t === 'text'){
+    x.fillStyle = o.c; x.font = `600 ${o.s}px Lexend, Verdana, sans-serif`; x.textBaseline = 'middle';
+    o.text.split('\n').forEach((l, i) => x.fillText(l, o.x, o.y + i * o.s * 1.3));
+  } else {
+    x.globalCompositeOperation = o.t === 'erase' ? 'destination-out' : 'source-over';
+    x.globalAlpha = o.t === 'hl' ? .38 : 1;
+    x.strokeStyle = o.c; x.lineWidth = o.w; x.lineCap = x.lineJoin = 'round';
+    x.beginPath(); o.p.forEach(([a, b], i) => i ? x.lineTo(a, b) : x.moveTo(a, b));
+    if (o.p.length === 1) x.lineTo(o.p[0][0] + .1, o.p[0][1]);
+    x.stroke();
+  }
+  x.restore();
+}
+function shRedraw(){
+  for (const k of ['bg', 'ink', 'tmp']){ const c = shCanvas(k); c.width = curSheet.w; c.height = curSheet.h; }
+  shCanvas('bg').getContext('2d').drawImage(shImg, 0, 0, curSheet.w, curSheet.h);
+  const x = shCanvas('ink').getContext('2d'); curSheet.ops.forEach(o => shOp(x, o));
+}
+function shLayout(){
+  const box = $('.sheetbox'), w = Math.min(box.clientWidth - 4, 1100) * shZoom;
+  const wrap = $('#swrap'); wrap.style.width = w + 'px'; wrap.style.height = (w * curSheet.h / curSheet.w) + 'px';
+}
+function shCompose(maxW){
+  const k = Math.min(1, (maxW || curSheet.w) / curSheet.w), c = document.createElement('canvas');
+  c.width = Math.round(curSheet.w * k); c.height = Math.round(curSheet.h * k);
+  const x = c.getContext('2d'); x.drawImage(shCanvas('bg'), 0, 0, c.width, c.height); x.drawImage(shCanvas('ink'), 0, 0, c.width, c.height);
+  return c;
+}
+async function shSave(){
+  clearTimeout(shTimer); shTimer = null; if (!curSheet || !$('#swrap')) return;
+  curSheet.title = $('#stitle').value.trim() || 'Scheda';
+  curSheet.thumb = await new Promise(r => shCompose(360).toBlob(r, 'image/jpeg', .8));
+  await put(curSheet); const s = $('#ssave'); if (s) s.textContent = '✓ Salvata';
+}
+const shSchedule = () => { const s = $('#ssave'); if (s) s.textContent = '...'; clearTimeout(shTimer); shTimer = setTimeout(shSave, 700); };
+async function vScheda(m, id){
+  curSheet = await get(id); if (!curSheet){ location.hash = 'materie'; return; }
+  shImg = await createImageBitmap(curSheet.blob); shZoom = 1;
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curSheet.subjectId}">⬅</a><input class="title" id="stitle" value="${esc(curSheet.title)}"><span class="hint" id="ssave"></span></div>
+    <div class="toolbar" id="stools">
+      <button data-t="move">✋ Sposta</button><button data-t="pen">✏️ Penna</button><button data-t="hl">🖍️ Evidenzia</button><button data-t="text">🔤 Scrivi</button><button data-t="erase">🧽 Gomma</button>
+      ${SH_COLORI.map(c => `<button class="sw" data-c="${c}" style="background:${c}" title="Colore"></button>`).join('')}
+      <button id="sthick">〰️ Sottile</button><button id="sundo">↩️ Annulla</button>
+      <button id="szm">🔍−</button><button id="szp">🔍+</button><button id="srot">⟳ Ruota</button>
+      <button id="sread" class="hl">🔊 Leggimi</button><button id="sdl">⬇️ Salva foto</button><button id="sdel">🗑️</button>
+    </div>
+    <div id="sstatus"></div>
+    <div class="sheetbox"><div class="sheetwrap" id="swrap"><canvas class="bg"></canvas><canvas class="tmp" style="pointer-events:none"></canvas><canvas class="ink"></canvas></div></div>
+    <p class="hint">✋ Sposta serve per scorrere la scheda. Con ✏️ scrivi col dito, con la penna o col mouse. Con 🔤 tocchi un punto e scrivi con la tastiera o col microfono.</p>`;
+  const tools = $('#stools'), ink = shCanvas('ink');
+  const aggiorna = () => {
+    tools.querySelectorAll('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === shTool));
+    tools.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === shColor));
+    $('#sthick').textContent = shThick ? '🖊️ Grossa' : '〰️ Sottile';
+    ink.classList.toggle('draw', shTool !== 'move');
+  };
+  tools.onclick = e => {
+    const t = e.target.closest('[data-t]'), c = e.target.closest('[data-c]');
+    if (t) shTool = t.dataset.t;
+    if (c){ shColor = c.dataset.c; if (shTool === 'erase' || shTool === 'move' || shTool === 'hl') shTool = 'pen'; }
+    aggiorna();
+  };
+  $('#sthick').onclick = () => { shThick = !shThick; aggiorna(); };
+  $('#sundo').onclick = () => { if (!curSheet.ops.length) return toast('Non c\'è niente da annullare.'); curSheet.ops.pop(); shRedraw(); shSchedule(); };
+  $('#szm').onclick = () => { shZoom = Math.max(.5, shZoom - .25); shLayout(); };
+  $('#szp').onclick = () => { shZoom += .25; shLayout(); };
+  $('#srot').onclick = shRotate;
+  $('#sread').onclick = async () => { try { openReader(await ocr(curSheet.blob, $('#sstatus')), curSheet.title); } catch (e){ $('#sstatus').innerHTML = ''; toast('😕 ' + e.message); } };
+  $('#sdl').onclick = () => shCompose().toBlob(b => download(b, curSheet.title + '.jpg'), 'image/jpeg', .92);
+  $('#sdel').onclick = async () => { if (!confirm('Staccare e buttare via questa scheda?')) return; clearTimeout(shTimer); leaveHook = null; await del(curSheet.id); location.hash = 'materia/' + curSheet.subjectId; };
+  $('#stitle').oninput = shSchedule;
+
+  // disegno: le coordinate sono in pixel della foto, così restano giuste con qualsiasi zoom
+  let cur = null;
+  const pos = e => { const r = ink.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * curSheet.w / r.width * 10) / 10, Math.round((e.clientY - r.top) * curSheet.h / r.height * 10) / 10]; };
+  ink.onpointerdown = e => {
+    if (shTool === 'move') return;
+    e.preventDefault();
+    if (shTool === 'text') return shText(pos(e));
+    ink.setPointerCapture(e.pointerId);
+    const u = shUnit();
+    cur = {t: shTool, c: shTool === 'hl' ? '#ffd400' : shColor, w: shTool === 'hl' ? u * 14 : shTool === 'erase' ? u * 18 : u * (shThick ? 4.5 : 2.2), p: [pos(e)]};
+  };
+  ink.onpointermove = e => {
+    if (!cur) return;
+    const pt = pos(e), prev = cur.p[cur.p.length - 1]; cur.p.push(pt);
+    if (cur.t === 'hl'){ const x = shCanvas('tmp').getContext('2d'); x.clearRect(0, 0, curSheet.w, curSheet.h); shOp(x, cur); }
+    else shOp(ink.getContext('2d'), {...cur, p: [prev, pt]});
+  };
+  const fine = () => {
+    if (!cur) return;
+    if (cur.t === 'hl'){ shCanvas('tmp').getContext('2d').clearRect(0, 0, curSheet.w, curSheet.h); shOp(ink.getContext('2d'), cur); }
+    else if (cur.p.length === 1) shOp(ink.getContext('2d'), cur);
+    curSheet.ops.push(cur); cur = null; shSchedule();
+  };
+  ink.onpointerup = fine; ink.onpointercancel = fine;
+
+  shRedraw(); shLayout(); aggiorna();
+  leaveHook = async () => { if (shTimer) await shSave(); };
+}
+function shText([x, y]){
+  const ov = modal(`<h2>🔤 Scrivi sulla scheda</h2>
+    <div style="display:flex;gap:6px"><textarea id="stx" rows="2" spellcheck="true" lang="it" placeholder="Scrivi qui la risposta"></textarea><button class="btn alt" id="smic">🎤</button></div>
+    <div class="row"><button class="btn" id="sok">✅ Metti sulla scheda</button></div>`);
+  const tx = ov.querySelector('#stx'); tx.focus();
+  ov.querySelector('#smic').onclick = () => toggleDictation(tx, ov.querySelector('#smic'));
+  ov.querySelector('#sok').onclick = () => {
+    stopDictation(); const text = tx.value.trim(); ov.remove(); if (!text) return;
+    const o = {t: 'text', x, y, text, c: shColor, s: shUnit() * (shThick ? 20 : 14)};
+    curSheet.ops.push(o); shOp(shCanvas('ink').getContext('2d'), o); shSchedule();
+  };
+}
+async function shRotate(){
+  if (curSheet.ops.length && !confirm('Girando la foto si cancella quello che hai scritto sopra. Vuoi girarla lo stesso?')) return;
+  const c = document.createElement('canvas'); c.width = curSheet.h; c.height = curSheet.w;
+  const x = c.getContext('2d'); x.translate(c.width, 0); x.rotate(Math.PI / 2); x.drawImage(shImg, 0, 0, curSheet.w, curSheet.h);
+  curSheet.blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .9));
+  curSheet.w = c.width; curSheet.h = c.height; curSheet.ops = [];
+  shImg = await createImageBitmap(curSheet.blob); shRedraw(); shLayout(); shSchedule();
+}
+
+/* ===================== LIBRI ===================== */
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+async function addBooks(input, sid){
+  const files = [...input.files]; if (!files.length) return;
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  for (const f of files) await put({id: uid(), kind: 'book', subjectId: sid, title: f.name.replace(/\.[^.]+$/, ''), type: f.type === 'application/pdf' ? 'pdf' : 'img', blob: f, page: 1, added: Date.now()});
+  toast(files.length > 1 ? `${files.length} libri caricati 📚` : 'Libro caricato 📚'); render();
+}
+async function delBook(id){ if (!confirm('Togliere questo libro dall\'app?')) return; await del(id); render(); }
+let curBook = null, pdfDoc = null, pdfBookId = null, bookZoom = 1, bookUrl = null;
+async function vLibro(m, id){
+  curBook = await get(id); if (!curBook){ location.hash = 'materie'; return; }
+  const pdf = curBook.type === 'pdf';
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curBook.subjectId}">⬅</a><h1 style="font-size:1.2em">${esc(curBook.title)}</h1></div>
+    <div class="toolbar">${pdf ? `<button onclick="bookPage(-1)">◀</button><span class="pg" id="pg" onclick="bookGo()"></span><button onclick="bookPage(1)">▶</button>` : ''}
+      <button onclick="bookZoom=Math.max(.4,bookZoom-.2);drawBook()">🔍−</button><button onclick="bookZoom+=.2;drawBook()">🔍+</button>
+      <button class="hl" onclick="readBook()">🔊 Leggimi la pagina</button><button onclick="bookToMap()">🧠 Fai una mappa</button></div>
+    <div id="bstatus"></div><div id="bookview" class="bookview"><p style="padding:20px">⏳ Apro il libro...</p></div>`;
+  try {
+    if (pdf && pdfBookId !== id){
+      await loadScript(PDFJS + 'pdf.min.js'); pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js';
+      pdfDoc = await pdfjsLib.getDocument({data: await curBook.blob.arrayBuffer()}).promise; pdfBookId = id;
+    }
+    await drawBook();
+  } catch (e){ $('#bookview').innerHTML = `<p style="padding:20px">😕 ${esc(e.message)}</p>`; }
+}
+let drawing = false;
+async function drawBook(){
+  const v = $('#bookview'); if (!v || drawing) return; drawing = true;
+  try {
+    const w = Math.min(v.clientWidth || 800, 1000) * bookZoom;
+    if (curBook.type === 'pdf'){
+      curBook.page = Math.min(Math.max(1, curBook.page), pdfDoc.numPages); $('#pg').textContent = `pag. ${curBook.page} / ${pdfDoc.numPages}`;
+      const page = await pdfDoc.getPage(curBook.page);
+      const vp1 = page.getViewport({scale: 1}), sc = w / vp1.width, dpr = window.devicePixelRatio || 1;
+      const vp = page.getViewport({scale: sc * dpr});
+      const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; c.style.width = (vp.width / dpr) + 'px';
+      await page.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+      v.innerHTML = ''; v.appendChild(c);
+    } else {
+      if (!bookUrl || v.dataset.book !== curBook.id){ if (bookUrl) URL.revokeObjectURL(bookUrl); bookUrl = URL.createObjectURL(curBook.blob); v.dataset.book = curBook.id; }
+      v.innerHTML = `<img src="${bookUrl}" style="width:${w}px;max-width:none">`;
+    }
+  } finally { drawing = false; }
+}
+async function bookPage(d){ curBook.page += d; await drawBook(); put(curBook); }
+async function bookGo(){ const n = parseInt(prompt(`Vai a pagina (1-${pdfDoc.numPages}):`, curBook.page)); if (n){ curBook.page = n; await drawBook(); put(curBook); } }
+async function bookText(){
+  const st = $('#bstatus');
+  if (curBook.type === 'pdf'){
+    const page = await pdfDoc.getPage(curBook.page);
+    const tc = await page.getTextContent();
+    const t = cleanText(tc.items.map(i => i.str + (i.hasEOL ? '\n' : ' ')).join(''));
+    if (t.replace(/\s/g, '').length > 30) return t;
+    return ocr($('#bookview canvas'), st);
+  }
+  return ocr(curBook.blob, st);
+}
+async function readBook(){
+  try { const t = await bookText(); openReader(t, curBook.title + (curBook.type === 'pdf' ? ', pag. ' + curBook.page : '')); }
+  catch (e){ toast('😕 ' + e.message); $('#bstatus').innerHTML = ''; }
+}
+async function bookToMap(){
+  try { const t = await bookText(); mapFromText(curBook.subjectId, t); }
+  catch (e){ toast('😕 ' + e.message); }
+}
+
+/* mappa veloce da un testo: il centro è l'argomento, i rami sono le frasi */
+function mapFromText(sid, text){
+  const frasi = (String(text).match(/[^.!?]+[.!?]*/g) || []).map(s => s.trim()).filter(s => s.length > 3);
+  if (!frasi.length) return toast('Non ho trovato frasi da mettere nella mappa.');
+  const ov = modal(`<h2>🧠 Mappa dal testo</h2><label>Di che argomento si parla?<input id="ma" placeholder="Es. La fotosintesi"></label>
+    <p class="hint">Ho preparato un ramo per ogni frase importante. Poi puoi accorciarli e spostarli.</p>
+    <textarea id="mt" rows="9">${esc(frasi.slice(0, 10).map(f => f.length > 90 ? f.slice(0, 90) + '...' : f).join('\n'))}</textarea>
+    <div class="row"><button class="btn" id="mok">Crea la mappa</button></div>`);
+  ov.querySelector('#mok').onclick = () => {
+    const titolo = ov.querySelector('#ma').value.trim(); if (!titolo) return toast('Scrivi l\'argomento.');
+    const root = parseOutline(ov.querySelector('#mt').value, titolo); ov.remove(); newMap(sid, root);
+  };
+}
+
+/* ===================== LEGGI CON ME ===================== */
+async function vLeggi(m){
+  const subs = await subjects();
+  m.innerHTML = `<h1>🔊 Leggi con me</h1><p>Fai una foto a una pagina: la trasformo in testo e te la leggo ad alta voce.</p>
+    <div class="quick">
+      <label class="qbtn">📷<span>Fotografa</span><input type="file" accept="image/*" capture="environment" hidden onchange="leggiImg(this)"></label>
+      <label class="qbtn">🖼️<span>Scegli una foto</span><input type="file" accept="image/*" hidden onchange="leggiImg(this)"></label>
+      <button class="qbtn" onclick="leggiPaste()">📋<span>Incolla testo</span></button>
+      <button class="qbtn" id="lmic">🎤<span>Detta</span></button>
+    </div>
+    <div id="ocrst"></div>
+    <h2>📄 Il testo</h2>
+    <textarea id="ltext" rows="9" spellcheck="true" lang="it" placeholder="Qui comparirà il testo della foto. Puoi anche scriverlo o correggerlo.">${esc(S.lastText || '')}</textarea>
+    <div class="row">
+      <button class="btn" onclick="openReader($('#ltext').value)">▶️ Ascolta</button>
+      <button class="btn alt" onclick="mapFromText($('#lsub').value,$('#ltext').value)">🧠 Fai una mappa</button>
+      <button class="btn alt" onclick="$('#ltext').value='';$('#ltext').dispatchEvent(new Event('input'))">🧽 Svuota</button>
+    </div>
+    <div class="card"><label>Salva nel quaderno di:<select id="lsub">${subs.map(s => `<option value="${s.id}">${s.emoji} ${esc(s.name)}</option>`).join('')}</select></label>
+    <button class="btn" onclick="leggiSave()">💾 Salva come pagina</button></div>`;
+  $('#ltext').oninput = e => { S.lastText = e.target.value; saveSettings(); };
+  $('#lmic').onclick = () => toggleDictation($('#ltext'), $('#lmic'));
+}
+async function leggiImg(input){
+  const f = input.files[0]; if (!f) return;
+  try {
+    const t = await ocr(f, $('#ocrst'));
+    if (!t) return toast('Non riesco a leggere il testo. Prova una foto più dritta e con più luce. 💡', 4500);
+    $('#ltext').value = t; S.lastText = t; saveSettings();
+    openReader(t);
+  } catch (e){ $('#ocrst').innerHTML = ''; toast('😕 ' + e.message, 4500); }
+  input.value = '';
+}
+async function leggiPaste(){
+  try { const t = await navigator.clipboard.readText(); if (t){ $('#ltext').value = t; $('#ltext').dispatchEvent(new Event('input')); return; } } catch (_) {}
+  $('#ltext').focus(); toast('Tieni premuto nel riquadro e scegli "Incolla".');
+}
+async function leggiSave(){
+  const t = $('#ltext').value.trim(); if (!t) return toast('Non c\'è testo da salvare.');
+  const titolo = prompt('Che titolo diamo a questa pagina?', t.split(/[.\n]/)[0].slice(0, 40)); if (titolo == null) return;
+  const d = {id: uid(), kind: 'doc', subjectId: $('#lsub').value, title: titolo, html: t.split(/\n+/).map(p => `<p>${esc(p)}</p>`).join(''), updated: Date.now()};
+  await put(d); toast('Salvata nel quaderno 📓');
+}
+
+/* ===================== COMPITI ===================== */
+function taskForm(subs, sid){
+  return `<h3>➕ Nuovo compito</h3>
+    ${subs.length > 1 ? `<label>Materia<select id="tsub">${subs.map(s => `<option value="${s.id}" ${s.id === sid ? 'selected' : ''}>${s.emoji} ${esc(s.name)}</option>`).join('')}</select></label>` : `<input type="hidden" id="tsub" value="${sid}">`}
+    <label>Cosa devo fare?<div style="display:flex;gap:6px"><input id="ttext" placeholder="Es. Pag. 45 esercizi 1, 2, 3" spellcheck="true" lang="it"><button class="btn alt" type="button" onclick="toggleDictation($('#ttext'),this)" title="Detta">🎤</button></div></label>
+    <label>Per quando?<input type="date" id="tdue" value="${addDays(1)}"></label>
+    <label style="font-weight:400"><input type="checkbox" id="trem" checked>Avvisami il giorno prima 🔔</label>
+    <button class="btn" onclick="addTask()">✅ Aggiungi</button>`;
+}
+async function addTask(){
+  const text = $('#ttext').value.trim(); if (!text) return toast('Scrivi cosa devi fare.');
+  stopDictation();
+  await put({id: uid(), kind: 'task', subjectId: $('#tsub').value, text, due: $('#tdue').value || addDays(1), remind: $('#trem').checked, done: false, created: Date.now()});
+  toast('Compito aggiunto 📝'); render();
+}
+function taskRow(t, sm){
+  const s = sm[t.subjectId] || {name: '?', emoji: '📘', color: '#fff'};
+  const cls = t.done ? 'done' : t.due < today() ? 'late' : t.due === today() ? 'today' : '';
+  return `<div class="task ${cls}" style="--sc:${s.color}">
+    <button class="ico check" onclick="toggleTask('${t.id}')" title="Fatto">${t.done ? '✅' : '🔲'}</button>
+    <div class="tt"><b>${s.emoji} ${esc(s.name)}</b><span>${esc(t.text)}</span></div>
+    <span class="due">${fmtDue(t.due)}</span>
+    <button class="ico" onclick="speakTask('${t.id}')" title="Ascolta">🔊</button>
+    <button class="ico" onclick="delTask('${t.id}')" title="Elimina">🗑️</button></div>`;
+}
+async function toggleTask(id){
+  const t = await get(id); t.done = !t.done; S.stars = Math.max(0, S.stars + (t.done ? 1 : -1));
+  await put(t); saveSettings(); if (t.done) celebrate(S.stars % XP_LIV === 0); render();
+}
+async function speakTask(id){ const t = await get(id); const s = await get(t.subjectId); speak(`${s ? s.name : ''}, per ${fmtDue(t.due)}: ${t.text}`); }
+async function delTask(id){ if (!confirm('Eliminare questo compito?')) return; await del(id); render(); }
+async function vCompiti(m){
+  const subs = await subjects(); const sm = Object.fromEntries(subs.map(s => [s.id, s]));
+  const tasks = (await all('task')).sort((a, b) => a.due.localeCompare(b.due));
+  const t0 = today(), t1 = addDays(1);
+  const gruppi = [['⏰ In ritardo', x => !x.done && x.due < t0], ['🔥 Per oggi', x => !x.done && x.due === t0], ['📌 Per domani', x => !x.done && x.due === t1], ['🗓️ Prossimi giorni', x => !x.done && x.due > t1], ['✅ Fatti di recente', x => x.done]];
+  const reg = REGISTRI[S.registro] || REGISTRI.altro;
+  m.innerHTML = `<h1>📝 I miei compiti</h1>
+    <div class="row">
+      <button class="btn alt" onclick="openRegistro()">🏫 Apri ${esc(reg.n)}</button>
+      <button class="btn alt" onclick="importRegistro()">📋 Copia dal registro</button>
+      ${'Notification' in window && Notification.permission !== 'granted' ? '<button class="btn alt" onclick="enableNotif()">🔔 Attiva avvisi</button>' : ''}
+    </div>
+    <div class="card">${taskForm(subs, subs[0]?.id)}</div>
+    ${gruppi.map(([h, f]) => { let l = tasks.filter(f); if (h.startsWith('✅')) l = l.slice(-8).reverse(); return l.length ? `<h2>${h}</h2>` + l.map(t => taskRow(t, sm)).join('') : ''; }).join('') || '<p class="empty card">Nessun compito. Aggiungine uno qui sopra! 😎</p>'}`;
+}
+function openRegistro(){
+  const u = S.registro === 'altro' ? S.registroUrl : REGISTRI[S.registro].u;
+  if (!u){ toast('Scrivi il link del registro nelle Opzioni ⚙️'); location.hash = 'impostazioni'; return; }
+  window.open(u, '_blank', 'noopener');
+}
+async function importRegistro(){
+  const subs = await subjects();
+  const ov = modal(`<h2>📋 Copia dal registro</h2>
+    <p class="hint">1. Apri il registro${S.registro === 'axios' ? ' (Axios: menu <b>Compiti</b>, oppure <b>Agenda</b>)' : ' e vai su <b>Agenda</b> o <b>Compiti</b>'}.<br>2. Seleziona e copia i compiti.<br>3. Incollali qui sotto: ogni riga diventa un compito. Se nella riga c'è il nome di una materia, la riconosco da solo.</p>
+    <textarea id="it" rows="8" placeholder="Matematica: pag. 45 es. 1-5&#10;Storia: studiare cap. 3"></textarea>
+    <label>Materia se non la trovo<select id="isub">${subs.map(s => `<option value="${s.id}">${s.emoji} ${esc(s.name)}</option>`).join('')}</select></label>
+    <label>Per quando?<input type="date" id="idue" value="${addDays(1)}"></label>
+    <button class="btn" id="iok">👀 Controlla i compiti</button>`);
+  const box = ov.querySelector('.modal');
+  const passo1 = box.innerHTML; // per tornare indietro e correggere il testo incollato
+  let testo = '';
+  const vai = () => {
+    testo = ov.querySelector('#it').value;
+    const lista = parseRegistro(testo, subs, ov.querySelector('#isub').value, ov.querySelector('#idue').value || addDays(1));
+    if (!lista.length) return toast('Incolla almeno una riga.');
+    anteprima(lista);
+  };
+  const anteprima = lista => {
+    box.innerHTML = `<div style="text-align:right;margin:-8px -8px 0 0"><button class="ico" data-close>✖</button></div>
+      <h2>👀 Controlla prima di aggiungere</h2>
+      <p class="hint">Puoi cambiare materia, testo e data. Tocca 🗑️ per togliere una riga sbagliata.</p>
+      <div id="prev">${lista.map(c => `<div class="card" style="margin:8px 0;padding:10px" data-row>
+        <div style="display:flex;gap:6px;align-items:center"><select data-f="sid" style="margin:0">${subs.map(s => `<option value="${s.id}" ${s.id === c.sid ? 'selected' : ''}>${s.emoji} ${esc(s.name)}</option>`).join('')}</select>
+        <button class="ico" data-del title="Togli">🗑️</button></div>
+        <input data-f="text" value="${esc(c.text)}" spellcheck="true" lang="it">
+        <input data-f="due" type="date" value="${c.due}"></div>`).join('')}</div>
+      <div class="row"><button class="btn" id="iadd">✅ Aggiungi i compiti</button><button class="btn alt" id="iback">⬅ Correggi il testo</button></div>`;
+    const conta = () => { const n = box.querySelectorAll('[data-row]').length; box.querySelector('#iadd').textContent = n ? `✅ Aggiungi ${n} compit${n === 1 ? 'o' : 'i'}` : 'Nessun compito'; box.querySelector('#iadd').disabled = !n; };
+    box.querySelector('#prev').onclick = e => { if (e.target.closest('[data-del]')){ e.target.closest('[data-row]').remove(); conta(); } };
+    box.querySelector('#iback').onclick = () => { box.innerHTML = passo1; ov.querySelector('#it').value = testo; ov.querySelector('#iok').onclick = vai; };
+    box.querySelector('#iadd').onclick = async () => {
+      const ids = [];
+      for (const r of box.querySelectorAll('[data-row]')){
+        const text = r.querySelector('[data-f=text]').value.trim(); if (!text) continue;
+        const id = uid(); ids.push(id);
+        await put({id, kind: 'task', subjectId: r.querySelector('[data-f=sid]').value, text, due: r.querySelector('[data-f=due]').value || addDays(1), remind: true, done: false, created: Date.now()});
+      }
+      ov.remove(); render();
+      toastAction(`${ids.length} compiti aggiunti 📝`, '↩️ Annulla', async () => { for (const id of ids) await del(id); toast('Annullato: compiti tolti.'); render(); });
+    };
+    conta();
+  };
+  ov.querySelector('#iok').onclick = vai;
+}
+// una data nella riga (es. 28/10/2026 o 28/10) vale per quella riga e per le successive
+function parseRegistro(testo, subs, sidBase, dueBase){
+  const out = []; let due = dueBase;
+  for (const r of testo.split('\n').map(r => r.trim()).filter(r => r.length > 2)){
+    const d = r.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+    if (d && +d[1] >= 1 && +d[1] <= 31 && +d[2] >= 1 && +d[2] <= 12){
+      const y = d[3] ? (d[3].length === 2 ? '20' + d[3] : d[3]) : String(new Date().getFullYear());
+      due = `${y}-${d[2].padStart(2, '0')}-${d[1].padStart(2, '0')}`;
+      if (r.replace(d[0], '').replace(/[^\p{L}]/gu, '').length < 12) continue; // riga con solo la data
+    }
+    const s = subs.find(s => r.toLowerCase().includes(s.name.toLowerCase().replace(/^ed\.\s*/, '')));
+    out.push({sid: s ? s.id : sidBase, text: r, due});
+  }
+  return out;
+}
+
+/* ===================== promemoria ===================== */
+async function enableNotif(){
+  if (!('Notification' in window)) return toast('Questo dispositivo non permette gli avvisi.');
+  const p = await Notification.requestPermission();
+  toast(p === 'granted' ? 'Avvisi attivi 🔔' : 'Avvisi non attivati.'); render();
+}
+async function notify(title, body){
+  toast(`🔔 ${title} ${body}`, 6000);
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg) return reg.showNotification(title, {body, icon: 'icon.svg'}); new Notification(title, {body, icon: 'icon.svg'}); } catch (_) {}
+}
+async function checkReminders(){
+  const t0 = today(), t1 = addDays(1), h = new Date().getHours();
+  const sm = await subjMap();
+  for (const t of (await all('task')).filter(t => !t.done && t.remind)){
+    const key = t.due === t1 && h >= 15 ? 'd1' : t.due === t0 && h >= 7 ? 'd0' : null;
+    if (key && t.notified !== key + t.due){
+      t.notified = key + t.due; await put(t);
+      const s = sm[t.subjectId];
+      notify(key === 'd1' ? 'Per domani:' : 'Per oggi:', `${s ? s.emoji + ' ' + s.name + ', ' : ''}${t.text}`);
+    }
+  }
+}
+
+/* ===================== OPZIONI ===================== */
+const TEMI = [['blocchi','⛏️ Blocchi','#121a33','#5fb44a'],['spazio','🚀 Spazio','#141a46','#4a1f7a'],['calcio','⚽ Calcio','#0b5d2a','#17a34a'],['oceano','🌊 Oceano','#03396c','#0e8fa8'],['gaming','🎮 Gaming','#07070f','#2a0845'],['vulcano','🌋 Vulcano','#2b0a0a','#b3361b']];
+async function vImpostazioni(m){
+  const imgs = await all('img'); const motiv = imgs.filter(i => i.role === 'motiv');
+  const voci = ('speechSynthesis' in window ? speechSynthesis.getVoices() : []).filter(v => v.lang.startsWith('it'));
+  m.innerHTML = `<h1>⚙️ Opzioni</h1>
+    <div class="card"><label>Come ti chiami?<input id="oname" value="${esc(S.name)}"></label></div>
+    <h2>🎨 Sfondo</h2><div class="card">
+      <div class="themes">${TEMI.map(t => `<button class="${S.theme === t[0] && !S.bgId ? 'on' : ''}" style="background:linear-gradient(135deg,${t[2]},${t[3]})" onclick="S.theme='${t[0]}';S.bgId=null;saveSettings();render()">${t[1]}</button>`).join('')}</div>
+      <div class="row"><label class="btn alt" style="margin:0">🖼️ Usa una mia foto come sfondo<input type="file" accept="image/*" hidden onchange="setBg(this)"></label>${S.bgId ? '<button class="btn alt" onclick="S.bgId=null;saveSettings();render()">✖ Togli foto</button>' : ''}</div></div>
+    <h2>🌟 Immagini motivazionali</h2><div class="card"><p class="hint">Aggiungi le immagini che ti danno la carica: il tuo youtuber preferito, uno screenshot della tua costruzione migliore, il tuo mondo. Compaiono nella Home.</p>
+      <div class="thumbs">${motiv.map(i => `<div><img src="" data-img="${i.id}"><button onclick="delImg('${i.id}')">✖</button></div>`).join('')}</div>
+      <label class="btn alt" style="margin-top:10px">➕ Aggiungi foto<input type="file" accept="image/*" multiple hidden onchange="addMotiv(this)"></label></div>
+    <h2>🔤 Lettura facile</h2><div class="card">
+      <label>Carattere<select id="ofont"><option ${S.font === 'Lexend' ? 'selected' : ''}>Lexend</option><option ${S.font === 'Atkinson Hyperlegible' ? 'selected' : ''}>Atkinson Hyperlegible</option><option value="Verdana" ${S.font === 'Verdana' ? 'selected' : ''}>Verdana</option></select></label>
+      <label>Grandezza del testo: <span id="vfs">${S.fs}</span><input type="range" id="ofs" min="15" max="28" value="${S.fs}"></label>
+      <label>Spazio tra le lettere: <span id="vls">${S.ls}</span><input type="range" id="ols" min="0" max="12" value="${S.ls}"></label>
+      <div class="paper" style="margin-top:8px">Prova: la volpe salta sopra il cane pigro. 123</div></div>
+    <h2>🗣️ Voce</h2><div class="card">
+      <label>Velocità: <span id="vrate">${S.rate}</span><input type="range" id="orate" min="0.5" max="1.5" step="0.1" value="${S.rate}"></label>
+      ${voci.length > 1 ? `<label>Voce<select id="ovoice"><option value="">Automatica</option>${voci.map(v => `<option ${v.name === S.voice ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></label>` : ''}
+      <button class="btn alt" onclick="speak('Ciao${S.name ? ' ' + esc(S.name).replace(/'/g, '') : ''}! Questa è la mia voce. Ti piace?')">🔊 Prova la voce</button></div>
+    <h2>🏫 Registro elettronico</h2><div class="card">
+      <label>Quale usa la tua scuola?<select id="oreg">${Object.entries(REGISTRI).map(([k, r]) => `<option value="${k}" ${S.registro === k ? 'selected' : ''}>${k === 'altro' ? 'Un altro (scrivo il link)' : r.n}</option>`).join('')}</select></label>
+      <label id="oregu" style="${S.registro === 'altro' ? '' : 'display:none'}">Link del registro<input id="oregurl" value="${esc(S.registroUrl)}" placeholder="https://..."></label>
+      <p class="hint">I registri elettronici non permettono ad altre app di leggere i compiti in automatico. Da qui apri il registro con un tocco e copi i compiti nell'app con "Copia dal registro".</p></div>
+    <h2>🔔 Avvisi</h2><div class="card"><button class="btn alt" onclick="enableNotif()">🔔 Attiva avvisi dei compiti</button><p class="hint">Gli avvisi arrivano quando l'app è aperta o in uso sul dispositivo.</p></div>
+    <h2>💾 Copia di sicurezza</h2><div class="card"><p class="hint">Tutto resta salvato su questo dispositivo. Per passare i quaderni dal telefono al PC (o viceversa): salva la copia qui, mandala all'altro dispositivo e caricala lì.</p>
+      <div class="row"><button class="btn alt" onclick="exportBackup(false)">⬇️ Salva copia</button><button class="btn alt" onclick="exportBackup(true)">⬇️ Salva copia con i libri</button>
+      <label class="btn alt" style="margin:0">⬆️ Carica copia<input type="file" accept=".json,application/json" hidden onchange="importBackup(this)"></label></div></div>`;
+  m.querySelectorAll('[data-img]').forEach(async el => { const i = await get(el.dataset.img); if (i) el.src = URL.createObjectURL(i.blob); });
+  $('#oname').oninput = e => { S.name = e.target.value.trim(); saveSettings(); };
+  $('#ofont').onchange = e => { S.font = e.target.value; saveSettings(); };
+  $('#ofs').oninput = e => { S.fs = +e.target.value; $('#vfs').textContent = S.fs; saveSettings(); };
+  $('#ols').oninput = e => { S.ls = +e.target.value; $('#vls').textContent = S.ls; saveSettings(); };
+  $('#orate').oninput = e => { S.rate = +e.target.value; $('#vrate').textContent = S.rate; saveSettings(); };
+  if ($('#ovoice')) $('#ovoice').onchange = e => { S.voice = e.target.value; saveSettings(); };
+  $('#oreg').onchange = e => { S.registro = e.target.value; $('#oregu').style.display = S.registro === 'altro' ? '' : 'none'; saveSettings(); };
+  $('#oregurl').oninput = e => { S.registroUrl = e.target.value.trim(); saveSettings(); };
+}
+async function setBg(input){ const f = input.files[0]; if (!f) return; if (S.bgId) await del(S.bgId); const id = uid(); await put({id, kind: 'img', role: 'bg', blob: f}); S.bgId = id; saveSettings(); render(); }
+async function addMotiv(input){ for (const f of input.files) await put({id: uid(), kind: 'img', role: 'motiv', blob: f}); toast('Foto aggiunte 🌟'); render(); }
+async function delImg(id){ await del(id); render(); }
+async function exportBackup(withBooks){
+  toast('Preparo la copia...');
+  const out = [];
+  for (const it of await all()){
+    if (it.kind === 'book' && !withBooks) continue;
+    const o = {...it};
+    for (const k in o) if (o[k] instanceof Blob) o[k] = {__blob: o[k].type, name: o[k].name, data: await blobToDataURL(o[k])};
+    out.push(o);
+  }
+  download(new Blob([JSON.stringify({app: 'zainosmart', v: 1, items: out})], {type: 'application/json'}), `zaino-smart-copia-${today()}.json`);
+}
+async function importBackup(input){
+  const f = input.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text()); if (j.app !== 'zainosmart') throw new Error('Questo file non è una copia di Zaino Smart.');
+    if (!confirm(`Caricare la copia (${j.items.length} elementi)? Quello che hai già resta, le cose uguali vengono aggiornate.`)) return;
+    for (const o of j.items){
+      for (const k in o) if (o[k] && typeof o[k] === 'object' && '__blob' in o[k]){ const b = await (await fetch(o[k].data)).blob(); o[k] = new File([b], o[k].name || 'file', {type: o[k].__blob}); }
+      await put(o);
+    }
+    await loadSettings(); toast('Copia caricata ✅'); render();
+  } catch (e){ toast('😕 ' + e.message, 4500); }
+  input.value = '';
+}
+
+/* ===================== avvio ===================== */
+const MATERIE_BASE = [['Italiano','📖','#ff7675'],['Matematica','➗','#74b9ff'],['Geometria','📐','#4dabf7'],['Storia','🏛️','#e17055'],['Geografia','🌍','#00b894'],['Scienze','🔬','#55efc4'],['Inglese','🇬🇧','#a29bfe'],['Seconda lingua','🗣️','#fd79a8'],['Tecnologia','⚙️','#b2bec3'],['Arte','🎨','#fdcb6e'],['Musica','🎵','#81ecec'],['Ed. Fisica','⚽','#badc58']];
+(async () => {
+  await loadSettings();
+  if (!(await all('subject')).length){
+    for (const [i, [n, e, c]] of MATERIE_BASE.entries()) await put({id: uid(), kind: 'subject', name: n, emoji: e, color: c, order: i});
+  }
+  // chi aveva già le materie della prima versione riceve anche Geometria, subito dopo Matematica
+  if ((S.cfgV || 1) < 3){
+    const subs = await subjects();
+    if (!subs.some(s => /geometr/i.test(s.name))){ const mat = subs.find(s => /matem/i.test(s.name)); await put({id: uid(), kind: 'subject', name: 'Geometria', emoji: '📐', color: '#4dabf7', order: mat ? (mat.order ?? 0) + 0.5 : 99}); }
+    S.cfgV = 3; saveSettings();
+  }
+  window.addEventListener('hashchange', render);
+  await render();
+  if (!S.name){
+    const ov = modal(`<div style="text-align:center;font-size:70px">🎒</div><h2 style="text-align:center">Benvenuto in Zaino Smart!</h2>
+      <p>Qui puoi farti leggere le pagine, fare mappe, scrivere con il correttore e tenere i compiti sotto controllo.</p>
+      <label>Come ti chiami?<input id="wn" placeholder="Il tuo nome"></label><button class="btn" id="wok">🚀 Iniziamo!</button>`);
+    ov.querySelector('#wok').onclick = () => { S.name = ov.querySelector('#wn').value.trim(); saveSettings(); ov.remove(); render(); };
+  }
+  checkReminders(); setInterval(checkReminders, 60000);
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Zaino Smart",
+  "short_name": "Zaino Smart",
+  "description": "Quaderno digitale per la scuola: lettura ad alta voce, mappe, compiti e scrittura con correttore.",
+  "lang": "it",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#141a46",
+  "theme_color": "#141a46",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
