@@ -68,11 +68,12 @@ h3{margin:.2em 0 .6em}
 .wrap{min-height:100vh}
 main{padding:12px 16px 110px;max-width:1000px;margin:0 auto}
 header{display:flex;align-items:center;gap:10px;padding:12px 16px 0;max-width:1000px;margin:0 auto}
-.logo{font-weight:800;font-size:1.15em;flex:1}
+.logo{font-weight:800;font-size:1.15em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:420px){.logo{font-size:1em}.pill{padding:4px 10px;font-size:.85em}}
 .pill{background:var(--card);border:1px solid var(--cardB);border-radius:99px;padding:4px 14px;font-weight:600;white-space:nowrap}
 
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#000000b3;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
-nav a{flex:1;text-align:center;color:#fff;text-decoration:none;padding:8px 2px 10px;font-size:12px;letter-spacing:0;border-top:3px solid transparent}
+nav a{flex:1;min-width:0;text-align:center;color:#fff;text-decoration:none;padding:8px 1px 10px;font-size:11px;letter-spacing:0;border-top:3px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 nav a i{display:block;font-style:normal;font-size:26px;line-height:1.2}
 nav a.on{color:var(--accent);border-top-color:var(--accent)}
 @media(min-width:900px){
@@ -251,6 +252,7 @@ input.title{background:transparent;border:0;border-bottom:2px dashed var(--cardB
   <a href="#materie" data-r="materie"><i>🎒</i>Materie</a>
   <a href="#leggi" data-r="leggi"><i>🔊</i>Leggi</a>
   <a href="#compiti" data-r="compiti"><i>📝</i>Compiti</a>
+  <a href="#classroom" data-r="classroom"><i>🎓</i>Classroom</a>
   <a href="#impostazioni" data-r="impostazioni"><i>⚙️</i>Opzioni</a>
 </nav>
 
@@ -535,7 +537,7 @@ async function render(){
   const [r, id] = (location.hash.slice(1) || 'home').split('/');
   const sezione = ['materia','doc','mappa','libro','scheda'].includes(r) ? 'materie' : r;
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.r === sezione));
-  const views = {home:vHome, materie:vMaterie, materia:vMateria, doc:vDoc, mappa:vMappa, libro:vLibro, scheda:vScheda, leggi:vLeggi, compiti:vCompiti, impostazioni:vImpostazioni};
+  const views = {home:vHome, materie:vMaterie, materia:vMateria, doc:vDoc, mappa:vMappa, libro:vLibro, scheda:vScheda, leggi:vLeggi, compiti:vCompiti, classroom:vClassroom, impostazioni:vImpostazioni};
   const m = $('#main');
   await (views[r] || vHome)(m, id);
   window.scrollTo(0, 0);
@@ -609,7 +611,7 @@ let subTab = 'quaderno';
 async function vMateria(m, id){
   const s = await get(id); if (!s){ location.hash = 'materie'; return; }
   const items = (await all()).filter(i => i.subjectId === id);
-  const tabs = [['quaderno','📓','Quaderno'],['schede','📎','Schede'],['mappe','🧠','Mappe'],['libri','📚','Libri'],['compiti','📝','Compiti']];
+  const tabs = [['quaderno','📓','Quaderno'],['schede','📎','Schede'],['mappe','🧠','Mappe'],['libri','📚','Libri'],['classroom','🎓','Classroom'],['compiti','📝','Compiti']];
   m.innerHTML = `<div class="bar"><a class="back" href="#materie">⬅</a><h1>${s.emoji} ${esc(s.name)}</h1><button class="ico" title="Modifica" onclick="editSubject('${id}')">✏️</button></div>
     <div class="tabs">${tabs.map(t => `<button class="${subTab === t[0] ? 'on' : ''}" onclick="subTab='${t[0]}';render()">${t[1]} ${t[2]}</button>`).join('')}${isMath(s) ? '<button onclick="openCalc()">🧮 Calcolatrice</button>' : ''}</div><div id="tabc"></div>`;
   const c = $('#tabc');
@@ -626,6 +628,11 @@ async function vMateria(m, id){
       <p class="hint">Fotografa la scheda che ti dà il prof: poi ci puoi scrivere sopra, evidenziare e farti leggere il testo.</p>
       ${sh.length ? `<div class="incollate">${sh.map(x => `<a class="incollata" href="#scheda/${x.id}"><img data-thumb="${x.id}" alt=""><b>${esc(x.title)}</b><small>${fmtDate(x.added)}</small></a>`).join('')}</div>` : vuoto('Nessuna scheda incollata. Fotografa la prima! 📎')}`;
     c.querySelectorAll('[data-thumb]').forEach(img => { const x = sh.find(y => y.id === img.dataset.thumb); const b = x.thumb || x.blob; img.src = URL.createObjectURL(b); });
+  } else if (subTab === 'classroom'){
+    const list = items.filter(i => i.from === 'classroom').sort((a, b) => (b.added || b.updated) - (a.added || a.updated));
+    c.innerHTML = `<div class="row" style="margin-top:0"><button class="btn alt" onclick="window.open(CLASSROOM_URL,'_blank','noopener')">🎓 Apri Classroom</button>
+      <label class="btn" style="margin:0">📥 Prendi l'allegato<input type="file" multiple hidden onchange="importAllegati(this,'${id}')"></label></div><div id="cstatus"></div>
+      <p class="hint">Scarica l'allegato da Classroom, poi toccalo qui: finisce nel quaderno di ${esc(s.name)}.</p>${allegatiHTML(list, {[id]: s})}`;
   } else if (subTab === 'mappe'){
     const maps = items.filter(i => i.kind === 'map').sort((a, b) => b.updated - a.updated);
     c.innerHTML = `<button class="btn" onclick="newMap('${id}')">➕ Nuova mappa</button>
@@ -888,15 +895,18 @@ function mPng(){
 }
 
 /* ===================== SCHEDE: foto della scheda + scrittura sopra ===================== */
-async function addSheet(input, sid){
-  const f = input.files[0]; if (!f) return;
-  // foto ridotta a 1800 px al massimo, per non riempire la memoria del telefono
-  const bmp = await createImageBitmap(f), k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+// prepara una scheda da una foto (non la salva): foto ridotta a 1800 px al massimo, per non riempire la memoria del telefono
+async function makeSheet(img, sid, title){
+  const bmp = await createImageBitmap(img), k = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
   const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
   c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
   const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .88));
+  return {id: uid(), kind: 'sheet', subjectId: sid, title, blob, w: c.width, h: c.height, ops: [], added: Date.now()};
+}
+async function addSheet(input, sid){
+  const f = input.files[0]; if (!f) return;
   const title = (prompt('Come chiamiamo questa scheda?', 'Scheda del ' + fmtDate(Date.now())) || '').trim() || 'Scheda';
-  const sh = {id: uid(), kind: 'sheet', subjectId: sid, title, blob, w: c.width, h: c.height, ops: [], added: Date.now()};
+  const sh = await makeSheet(f, sid, title);
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
   await put(sh); input.value = ''; location.hash = 'scheda/' + sh.id;
 }
@@ -1027,6 +1037,66 @@ async function shRotate(){
   shImg = await createImageBitmap(curSheet.blob); shRedraw(); shLayout(); shSchedule();
 }
 
+/* ===================== CLASSROOM: allegati scaricati → quaderno scelto ===================== */
+// Classroom non lascia leggere gli allegati ad altre app senza autorizzazione della scuola:
+// il ragazzo li scarica da Classroom e qui li smistiamo nel quaderno della materia.
+const CLASSROOM_URL = 'https://classroom.google.com/';
+const ALLEGATO = {
+  book: {e: '📕', dove: 'Libri', link: x => '#libro/' + x.id},
+  sheet: {e: '📎', dove: 'Schede', link: x => '#scheda/' + x.id},
+  doc: {e: '📄', dove: 'Quaderno', link: x => '#doc/' + x.id},
+  file: {e: '🗂️', dove: 'File', link: null}
+};
+function allegatiHTML(list, sm){
+  if (!list.length) return '<p class="empty card">Nessun allegato preso da Classroom. 🎓</p>';
+  return `<div class="list">${list.map(x => {
+    const a = ALLEGATO[x.kind], s = sm[x.subjectId];
+    const testo = `<span class="ie">${a.e}</span><span><b>${esc(x.title || 'Senza titolo')}</b><small>${s ? s.emoji + ' ' + esc(s.name) + ' · ' : ''}${a.dove} · ${fmtDate(x.added || x.updated)}</small></span>`;
+    return a.link ? `<a class="item" href="${a.link(x)}">${testo}</a>`
+      : `<div class="item"><button style="display:flex;gap:12px;align-items:center;flex:1;background:none;border:0;color:#fff;font:inherit;text-align:left;cursor:pointer" onclick="apriFile('${x.id}')">${testo}</button><button class="ico" onclick="delFile('${x.id}')">🗑️</button></div>`;
+  }).join('')}</div>`;
+}
+async function vClassroom(m){
+  const subs = await subjects(), sm = Object.fromEntries(subs.map(s => [s.id, s]));
+  const recenti = (await all()).filter(i => i.from === 'classroom').sort((a, b) => (b.added || b.updated) - (a.added || a.updated)).slice(0, 20);
+  m.innerHTML = `<h1>🎓 Classroom</h1>
+    <div class="row"><button class="btn" onclick="window.open(CLASSROOM_URL,'_blank','noopener')">🎓 Apri Classroom</button></div>
+    <div class="card"><h3>📥 Metti un allegato nel quaderno</h3>
+      <p class="hint">1. In Classroom apri il compito e tocca l'allegato.<br>2. Scaricalo (su iPhone: tasto Condividi → <b>Salva su File</b>).<br>3. Torna qui, scegli il quaderno e tocca <b>Prendi l'allegato</b>.</p>
+      <label>In quale quaderno?<select id="csub">${subs.map(s => `<option value="${s.id}">${s.emoji} ${esc(s.name)}</option>`).join('')}</select></label>
+      <label class="btn" style="margin:0">📥 Prendi l'allegato<input type="file" multiple hidden onchange="importAllegati(this,$('#csub').value)"></label>
+      <div id="cstatus"></div>
+      <p class="hint">Dove vanno: PDF in <b>Libri</b> (te lo legge e ci puoi scrivere sopra), foto in <b>Schede</b>, Word in una <b>pagina del quaderno</b> che puoi modificare, gli altri file restano da aprire.</p></div>
+    <h2>🕘 Ultimi allegati</h2>${allegatiHTML(recenti, sm)}`;
+}
+async function importAllegati(input, sid){
+  const files = [...input.files]; if (!files.length) return;
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  const st = $('#cstatus'), dove = {};
+  for (const [n, f] of files.entries()){
+    if (st) st.innerHTML = `<p>⏳ Sistemo ${files.length > 1 ? `${n + 1} di ${files.length}: ` : ''}${esc(f.name)}...</p>`;
+    const title = f.name.replace(/\.[^.]+$/, ''), base = {from: 'classroom', subjectId: sid, added: Date.now()};
+    let o;
+    try {
+      if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) o = {...base, id: uid(), kind: 'book', title, type: 'pdf', blob: f, page: 1};
+      else if (f.type.startsWith('image/') && !/heic|heif/i.test(f.type)) o = {...await makeSheet(f, sid, title), ...base};
+      else if (/\.docx$/i.test(f.name)){
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+        const r = await mammoth.convertToHtml({arrayBuffer: await f.arrayBuffer()});
+        const s = await get(sid);
+        o = {...base, id: uid(), kind: 'doc', title, html: r.value, foglio: isMath(s) ? 'quadretti' : 'righe', updated: Date.now()};
+      }
+    } catch (e){ o = null; }
+    if (!o) o = {...base, id: uid(), kind: 'file', title: f.name, blob: f};
+    await put(o); dove[ALLEGATO[o.kind].dove] = (dove[ALLEGATO[o.kind].dove] || 0) + 1;
+  }
+  input.value = ''; if (st) st.innerHTML = '';
+  toast('📥 Fatto! ' + Object.entries(dove).map(([d, k]) => `${k} in ${d}`).join(', '), 4500);
+  render();
+}
+async function apriFile(id){ const f = await get(id); if (f) download(f.blob, f.title); }
+async function delFile(id){ if (!confirm('Togliere questo file?')) return; await del(id); render(); }
+
 /* ===================== LIBRI ===================== */
 const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
 async function addBooks(input, sid){
@@ -1035,7 +1105,26 @@ async function addBooks(input, sid){
   for (const f of files) await put({id: uid(), kind: 'book', subjectId: sid, title: f.name.replace(/\.[^.]+$/, ''), type: f.type === 'application/pdf' ? 'pdf' : 'img', blob: f, page: 1, added: Date.now()});
   toast(files.length > 1 ? `${files.length} libri caricati 📚` : 'Libro caricato 📚'); render();
 }
-async function delBook(id){ if (!confirm('Togliere questo libro dall\'app?')) return; await del(id); render(); }
+async function delBook(id, esci){
+  if (!confirm('Togliere questo libro dall\'app?')) return;
+  const b = await get(id); await del(id);
+  if (esci && b) location.hash = 'materia/' + b.subjectId; else render();
+}
+// la pagina del PDF (o la foto) diventa una scheda su cui scrivere, es. un esercizio da Classroom
+async function bookToSheet(){
+  let img = curBook.blob;
+  if (curBook.type === 'pdf'){
+    const page = await pdfDoc.getPage(curBook.page), vp1 = page.getViewport({scale: 1});
+    const vp = page.getViewport({scale: 1600 / vp1.width}), c = document.createElement('canvas');
+    c.width = vp.width; c.height = vp.height;
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    await page.render({canvasContext: x, viewport: vp}).promise;
+    img = await new Promise(r => c.toBlob(r, 'image/jpeg', .9));
+  }
+  const sh = await makeSheet(img, curBook.subjectId, curBook.title + (curBook.type === 'pdf' ? ', pag. ' + curBook.page : ''));
+  if (curBook.from) sh.from = curBook.from;
+  await put(sh); location.hash = 'scheda/' + sh.id;
+}
 let curBook = null, pdfDoc = null, pdfBookId = null, bookZoom = 1, bookUrl = null;
 async function vLibro(m, id){
   curBook = await get(id); if (!curBook){ location.hash = 'materie'; return; }
@@ -1043,7 +1132,7 @@ async function vLibro(m, id){
   m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curBook.subjectId}">⬅</a><h1 style="font-size:1.2em">${esc(curBook.title)}</h1></div>
     <div class="toolbar">${pdf ? `<button onclick="bookPage(-1)">◀</button><span class="pg" id="pg" onclick="bookGo()"></span><button onclick="bookPage(1)">▶</button>` : ''}
       <button onclick="bookZoom=Math.max(.4,bookZoom-.2);drawBook()">🔍−</button><button onclick="bookZoom+=.2;drawBook()">🔍+</button>
-      <button class="hl" onclick="readBook()">🔊 Leggimi la pagina</button><button onclick="bookToMap()">🧠 Fai una mappa</button></div>
+      <button class="hl" onclick="readBook()">🔊 Leggimi la pagina</button><button onclick="bookToSheet()">✏️ Scrivici sopra</button><button onclick="bookToMap()">🧠 Fai una mappa</button><button onclick="delBook('${curBook.id}',true)">🗑️</button></div>
     <div id="bstatus"></div><div id="bookview" class="bookview"><p style="padding:20px">⏳ Apro il libro...</p></div>`;
   try {
     if (pdf && pdfBookId !== id){

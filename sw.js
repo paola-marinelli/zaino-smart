@@ -1,5 +1,5 @@
 // Zaino Smart: tiene l'app disponibile anche senza internet (prima prova la rete, poi la copia salvata)
-const CACHE = 'zaino-smart-v3';
+const CACHE = 'zaino-smart-v4';
 const BASE = ['./', 'index.html', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', e => {
