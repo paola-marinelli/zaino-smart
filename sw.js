@@ -1,6 +1,6 @@
 // Zaino Smart: tutto l'occorrente resta sul dispositivo, così l'app funziona anche senza internet.
 // APP = la pagina (cambia a ogni aggiornamento), LIB = librerie e caratteri (grandi, si scaricano una volta sola).
-const APP = 'zaino-app-v7';
+const APP = 'zaino-app-v8';
 const LIB = 'zaino-lib-1';
 const BASE = ['./', 'index.html', 'manifest.json', 'icon.svg', 'lib/fonts.css'];
 const LIBS = [
