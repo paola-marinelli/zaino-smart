@@ -1498,7 +1498,17 @@ const MATERIE_BASE = [['Italiano','📖','#ff7675'],['Matematica','➗','#74b9ff
     ov.querySelector('#wok').onclick = () => { S.name = ov.querySelector('#wn').value.trim(); saveSettings(); ov.remove(); render(); };
   }
   checkReminders(); setInterval(checkReminders, 60000);
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    // aggiornamento pubblicato: appena la versione nuova prende il comando, ricarico una volta (salvando la pagina aperta)
+    const giaControllata = !!navigator.serviceWorker.controller;
+    let ricaricata = false;
+    navigator.serviceWorker.addEventListener('controllerchange', async () => {
+      if (!giaControllata || ricaricata) return; ricaricata = true;
+      if (leaveHook) await leaveHook();
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 })();
 </script>
 </body>
