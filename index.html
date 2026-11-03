@@ -564,6 +564,8 @@ async function vHome(m){
       <button class="qbtn" onclick="quickNew('mappa')">🧠<span>Nuova mappa</span></button>
       <button class="qbtn" onclick="quickNew('doc')">✍️<span>Scrivi</span></button>
       <a class="qbtn" href="#materie">📚<span>I miei libri</span></a>
+      <button class="qbtn" onclick="apriBsmart()">📲<span>bSmart Books</span></button>
+      <a class="qbtn" href="#classroom">🎓<span>Classroom</span></a>
     </div>
     <h2>📅 Prossimi compiti</h2>
     ${tasks.length ? tasks.slice(0, 5).map(t => taskRow(t, sm)).join('') : '<p class="empty card">Nessun compito in arrivo. Goditi il tempo libero! 🎉</p>'}`;
@@ -639,9 +641,13 @@ async function vMateria(m, id){
       <div class="list">${maps.map(d => `<a class="item" href="#mappa/${d.id}"><span class="ie">🧠</span><span><b>${esc(d.title)}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Nessuna mappa. Le mappe aiutano a ricordare gli argomenti! 🧠')}</div>`;
   } else if (subTab === 'libri'){
     const books = items.filter(i => i.kind === 'book').sort((a, b) => a.title.localeCompare(b.title));
-    c.innerHTML = `<label class="btn" style="margin:0">➕ Carica libro (PDF o foto)<input type="file" accept="application/pdf,image/*" multiple hidden onchange="addBooks(this,'${id}')"></label>
-      <p class="hint">Puoi caricare il PDF del libro digitale oppure le foto delle pagine.</p>
-      <div class="list">${books.map(b => `<div class="item"><a href="#libro/${b.id}" style="display:flex;gap:12px;align-items:center;flex:1;color:#fff;text-decoration:none"><span class="ie">${b.type === 'pdf' ? '📕' : '🖼️'}</span><span><b>${esc(b.title)}</b><small>${b.type === 'pdf' ? 'PDF' : 'Foto'}, ${(b.blob.size / 1048576).toFixed(1)} MB</small></span></a><button class="ico" onclick="delBook('${b.id}')">🗑️</button></div>`).join('') || vuoto('Nessun libro caricato. 📚')}</div>`;
+    const links = items.filter(i => i.kind === 'link').sort((a, b) => a.title.localeCompare(b.title));
+    c.innerHTML = `<div class="row" style="margin-top:0"><label class="btn" style="margin:0">➕ Carica libro (PDF o foto)<input type="file" accept="application/pdf,image/*" multiple hidden onchange="addBooks(this,'${id}')"></label>
+      <button class="btn alt" onclick="apriBsmart()">📲 Apri bSmart Books</button><button class="btn alt" onclick="collegaBsmart('${id}')">🔗 Collega un libro bSmart</button></div>
+      <p class="hint">Qui carichi il PDF del libro o le foto delle pagine. I libri digitali dell'editore si leggono in bSmart Books: collegali qui per trovarli nella materia giusta.</p>
+      <div class="list">${links.map(l => `<div class="item"><button style="display:flex;gap:12px;align-items:center;flex:1;background:none;border:0;color:#fff;font:inherit;text-align:left;cursor:pointer" onclick="apriBsmart()"><span class="ie">📲</span><span><b>${esc(l.title)}</b><small>Si apre in bSmart Books</small></span></button><button class="ico" onclick="delLink('${l.id}')">🗑️</button></div>`).join('')}
+      ${books.map(b => `<div class="item"><a href="#libro/${b.id}" style="display:flex;gap:12px;align-items:center;flex:1;color:#fff;text-decoration:none"><span class="ie">${b.type === 'pdf' ? '📕' : '🖼️'}</span><span><b>${esc(b.title)}</b><small>${b.type === 'pdf' ? 'PDF' : 'Foto'}, ${(b.blob.size / 1048576).toFixed(1)} MB</small></span></a><button class="ico" onclick="delBook('${b.id}')">🗑️</button></div>`).join('')}
+      ${books.length || links.length ? '' : vuoto('Nessun libro. 📚')}</div>`;
   } else {
     const sm = {[id]: s};
     const ts = items.filter(i => i.kind === 'task').sort((a, b) => (a.done - b.done) || a.due.localeCompare(b.due));
@@ -1096,6 +1102,38 @@ async function importAllegati(input, sid){
 }
 async function apriFile(id){ const f = await get(id); if (f) download(f.blob, f.title); }
 async function delFile(id){ if (!confirm('Togliere questo file?')) return; await del(id); render(); }
+
+/* ===================== bSMART BOOKS: libri digitali dell'editore ===================== */
+// i libri bSmart sono protetti e si leggono solo nella loro app: qui c'è il collegamento,
+// e un "libro collegato" fa comparire il titolo nella materia giusta (anche in più materie)
+const BSMART_URL = 'https://books.bsmart.it/';
+const BSMART_APP = /iPhone|iPad|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document
+  ? 'https://apps.apple.com/app/id6466278493' : 'https://play.google.com/store/search?q=bSmart%20Books&c=apps';
+function apriBsmart(){
+  const ov = modal(`<h2>📲 bSmart Books</h2>
+    <p>Se hai l'app <b>bSmart Books</b> sul telefono o sul tablet, aprila dalla sua icona: lì i libri scaricati si leggono anche <b>senza internet</b>.</p>
+    <div class="row"><a class="btn" href="${BSMART_URL}" target="_blank" rel="noopener">🌐 Apri bSmart sul sito</a>
+    <a class="btn alt" href="${BSMART_APP}" target="_blank" rel="noopener">⬇️ Scarica l'app bSmart</a></div>
+    <p class="hint">Il sito funziona solo con internet. Per leggere offline, scarica il libro dentro l'app bSmart.</p>`);
+  ov.querySelectorAll('a').forEach(a => a.addEventListener('click', () => ov.remove()));
+}
+async function collegaBsmart(sid){
+  const subs = await subjects();
+  const ov = modal(`<h2>🔗 Collega un libro bSmart</h2>
+    <label>Titolo del libro<input id="lt" placeholder="Es. Tutto chiaro! 2"></label>
+    <p style="font-weight:600;margin-bottom:4px">In quali materie lo usi?</p>
+    <div>${subs.map(s => `<label style="font-weight:400;margin:6px 0"><input type="checkbox" value="${s.id}" ${s.id === sid ? 'checked' : ''}>${s.emoji} ${esc(s.name)}</label>`).join('')}</div>
+    <button class="btn" id="lok">🔗 Collega</button>`);
+  ov.querySelector('#lt').focus();
+  ov.querySelector('#lok').onclick = async () => {
+    const title = ov.querySelector('#lt').value.trim(); if (!title) return toast('Scrivi il titolo del libro.');
+    const scelte = [...ov.querySelectorAll('input[type=checkbox]:checked')].map(i => i.value);
+    if (!scelte.length) return toast('Scegli almeno una materia.');
+    for (const s of scelte) await put({id: uid(), kind: 'link', app: 'bsmart', subjectId: s, title, added: Date.now()});
+    ov.remove(); toast(`🔗 Collegato in ${scelte.length} materi${scelte.length === 1 ? 'a' : 'e'}`); render();
+  };
+}
+async function delLink(id){ if (!confirm('Togliere il collegamento? Il libro resta in bSmart.')) return; await del(id); render(); }
 
 /* ===================== LIBRI ===================== */
 const PDFJS = 'lib/';
