@@ -10,9 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&family=Atkinson+Hyperlegible:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="lib/fonts.css" rel="stylesheet">
 <style>
 :root{
   --font:'Lexend',system-ui,sans-serif; --fs:19px; --ls:.03em; --lh:1.8;
@@ -288,7 +286,7 @@ const loadedScripts = {};
 function loadScript(src){
   return loadedScripts[src] ||= new Promise((res, rej) => {
     const s = document.createElement('script'); s.src = src; s.onload = res;
-    s.onerror = () => { delete loadedScripts[src]; rej(new Error('Serve la connessione a internet per questa funzione.')); };
+    s.onerror = () => { delete loadedScripts[src]; rej(new Error('Questa funzione non è ancora pronta: apri l\'app una volta con internet. 📶')); };
     document.head.appendChild(s);
   });
 }
@@ -454,9 +452,11 @@ function cleanText(t){
 async function ocr(src, statusEl){
   const say = (msg, p) => { if (statusEl) statusEl.innerHTML = `<p>${msg}</p>${p != null ? `<div class="progress"><div style="width:${Math.round(p * 100)}%"></div></div>` : ''}`; };
   say('⏳ Preparo il lettore di testo... (la prima volta ci mette un po\')', 0);
-  await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+  await loadScript('lib/tesseract.min.js');
   const c = await toCanvas(src);
-  const res = await Tesseract.recognize(c, 'ita', {logger: m => { if (m.status === 'recognizing text') say('🔎 Sto leggendo la pagina...', m.progress); else say('⏳ ' + ({'loading language traineddata':'Scarico il vocabolario italiano...','initializing api':'Quasi pronto...'}[m.status] || 'Preparo...'), m.progress); }});
+  // tutto da lib/ dell'app (indirizzi completi: il worker li risolve dalla sua cartella), così funziona anche senza internet
+  const lib = new URL('lib/', location.href).href;
+  const res = await Tesseract.recognize(c, 'ita', {workerPath: lib + 'worker.min.js', corePath: lib, langPath: lib, workerBlobURL: false, logger: m => { if (m.status === 'recognizing text') say('🔎 Sto leggendo la pagina...', m.progress); else say('⏳ ' + ({'loading language traineddata':'Scarico il vocabolario italiano...','initializing api':'Quasi pronto...'}[m.status] || 'Preparo...'), m.progress); }});
   if (statusEl) statusEl.innerHTML = '';
   return cleanText(res.data.text);
 }
@@ -1081,7 +1081,7 @@ async function importAllegati(input, sid){
       if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) o = {...base, id: uid(), kind: 'book', title, type: 'pdf', blob: f, page: 1};
       else if (f.type.startsWith('image/') && !/heic|heif/i.test(f.type)) o = {...await makeSheet(f, sid, title), ...base};
       else if (/\.docx$/i.test(f.name)){
-        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+        await loadScript('lib/mammoth.browser.min.js');
         const r = await mammoth.convertToHtml({arrayBuffer: await f.arrayBuffer()});
         const s = await get(sid);
         o = {...base, id: uid(), kind: 'doc', title, html: r.value, foglio: isMath(s) ? 'quadretti' : 'righe', updated: Date.now()};
@@ -1098,7 +1098,7 @@ async function apriFile(id){ const f = await get(id); if (f) download(f.blob, f.
 async function delFile(id){ if (!confirm('Togliere questo file?')) return; await del(id); render(); }
 
 /* ===================== LIBRI ===================== */
-const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const PDFJS = 'lib/';
 async function addBooks(input, sid){
   const files = [...input.files]; if (!files.length) return;
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
@@ -1402,11 +1402,15 @@ async function vImpostazioni(m){
       <label>Quale usa la tua scuola?<select id="oreg">${Object.entries(REGISTRI).map(([k, r]) => `<option value="${k}" ${S.registro === k ? 'selected' : ''}>${k === 'altro' ? 'Un altro (scrivo il link)' : r.n}</option>`).join('')}</select></label>
       <label id="oregu" style="${S.registro === 'altro' ? '' : 'display:none'}">Link del registro<input id="oregurl" value="${esc(S.registroUrl)}" placeholder="https://..."></label>
       <p class="hint">I registri elettronici non permettono ad altre app di leggere i compiti in automatico. Da qui apri il registro con un tocco e copi i compiti nell'app con "Copia dal registro".</p></div>
+    <h2>📴 Senza internet</h2><div class="card"><p id="offst">⏳ Controllo...</p>
+      <button class="btn alt" id="offbtn" onclick="preparaOffline()">📥 Prepara l'app per l'uso senza internet</button>
+      <p class="hint">Quando è pronta, funziona tutto anche senza connessione: lettura delle foto, libri, schede, mappe, quaderno, compiti. Servono internet solo il dettato col microfono (su alcuni telefoni), Classroom e il registro.</p></div>
     <h2>🔔 Avvisi</h2><div class="card"><button class="btn alt" onclick="enableNotif()">🔔 Attiva avvisi dei compiti</button><p class="hint">Gli avvisi arrivano quando l'app è aperta o in uso sul dispositivo.</p></div>
     <h2>💾 Copia di sicurezza</h2><div class="card"><p class="hint">Tutto resta salvato su questo dispositivo. Per passare i quaderni dal telefono al PC (o viceversa): salva la copia qui, mandala all'altro dispositivo e caricala lì.</p>
       <div class="row"><button class="btn alt" onclick="exportBackup(false)">⬇️ Salva copia</button><button class="btn alt" onclick="exportBackup(true)">⬇️ Salva copia con i libri</button>
       <label class="btn alt" style="margin:0">⬆️ Carica copia<input type="file" accept=".json,application/json" hidden onchange="importBackup(this)"></label></div></div>`;
   m.querySelectorAll('[data-img]').forEach(async el => { const i = await get(el.dataset.img); if (i) el.src = URL.createObjectURL(i.blob); });
+  mostraOffline();
   $('#oname').oninput = e => { S.name = e.target.value.trim(); saveSettings(); };
   $('#ofont').onchange = e => { S.font = e.target.value; saveSettings(); };
   $('#ofs').oninput = e => { S.fs = +e.target.value; $('#vfs').textContent = S.fs; saveSettings(); };
@@ -1415,6 +1419,34 @@ async function vImpostazioni(m){
   if ($('#ovoice')) $('#ovoice').onchange = e => { S.voice = e.target.value; saveSettings(); };
   $('#oreg').onchange = e => { S.registro = e.target.value; $('#oregu').style.display = S.registro === 'altro' ? '' : 'none'; saveSettings(); };
   $('#oregurl').oninput = e => { S.registroUrl = e.target.value.trim(); saveSettings(); };
+}
+// stessi file e stesso nome di cache di sw.js (LIBS, LIB): se cambi lì, cambia anche qui
+const OFF_CACHE = 'zaino-lib-1';
+const OFF_FILES = ['lib/tesseract.min.js', 'lib/worker.min.js', 'lib/tesseract-core-lstm.wasm.js', 'lib/tesseract-core-simd-lstm.wasm.js', 'lib/ita.traineddata.gz',
+  'lib/pdf.min.js', 'lib/pdf.worker.min.js', 'lib/mammoth.browser.min.js',
+  'lib/fonts/Lexend-400.woff2', 'lib/fonts/AtkinsonHyperlegible-400.woff2', 'lib/fonts/AtkinsonHyperlegible-700.woff2', 'lib/fonts/AtkinsonHyperlegibleMono-400.woff2'];
+async function statoOffline(){
+  if (!('caches' in window) || !navigator.serviceWorker || !(await navigator.serviceWorker.getRegistration())) return null;
+  const c = await caches.open(OFF_CACHE); let ok = 0;
+  for (const u of OFF_FILES) if (await c.match(u)) ok++;
+  return {ok, tot: OFF_FILES.length};
+}
+async function mostraOffline(){
+  const el = $('#offst'); if (!el) return;
+  const s = await statoOffline();
+  if (!s){ el.innerHTML = '⚠️ Per usarla senza internet, apri l\'app dal link e installala sulla schermata Home.'; $('#offbtn').style.display = 'none'; return; }
+  el.innerHTML = s.ok === s.tot ? '✅ <b>Pronta!</b> L\'app funziona anche senza internet.' : `⏳ In preparazione: ${s.ok} file su ${s.tot}.`;
+  $('#offbtn').style.display = s.ok === s.tot ? 'none' : '';
+}
+async function preparaOffline(){
+  if (!navigator.onLine) return toast('Serve internet per prepararla, una volta sola. 📶');
+  const c = await caches.open(OFF_CACHE), el = $('#offst'); let ok = 0, err = 0;
+  for (const u of OFF_FILES){
+    if (!await c.match(u)) try { await c.add(u); } catch (_) { err++; }
+    ok++; if (el) el.innerHTML = `📥 Scarico... ${ok} di ${OFF_FILES.length}`;
+  }
+  if (err) toast('😕 Qualche file non è arrivato: riprova con una connessione migliore.', 4500);
+  mostraOffline();
 }
 async function setBg(input){ const f = input.files[0]; if (!f) return; if (S.bgId) await del(S.bgId); const id = uid(); await put({id, kind: 'img', role: 'bg', blob: f}); S.bgId = id; saveSettings(); render(); }
 async function addMotiv(input){ for (const f of input.files) await put({id: uid(), kind: 'img', role: 'motiv', blob: f}); toast('Foto aggiunte 🌟'); render(); }
