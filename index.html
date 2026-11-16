@@ -257,6 +257,13 @@ input.title{background:transparent;border:0;border-bottom:2px dashed var(--cardB
 <script>
 /* ===================== utilità ===================== */
 const $ = s => document.querySelector(s);
+// la stessa app gira anche come copia su claude.ai: lì salvataggi e microfono passano dai permessi di claude.ai
+const IN_ART = !!(window.claude && typeof window.claude.use === 'function');
+const CAP = {downloads: null, dictation: null};
+if (IN_ART){
+  window.claude.use('downloads').then(d => CAP.downloads = d).catch(() => {});
+  window.claude.use('dictation').then(d => { CAP.dictation = d; if (d) collegaDettato(d); }).catch(() => {});
+}
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
@@ -280,7 +287,15 @@ function toastAction(msg, label, fn, ms = 10000){
   t.querySelector('button').onclick = () => { t.remove(); fn(); };
   document.body.appendChild(t); setTimeout(() => t.remove(), ms);
 }
-function download(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name.replace(/[\\/:*?"<>|]/g, '_'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+async function download(blob, name){
+  name = name.replace(/[\\/:*?"<>|]/g, '_');
+  if (IN_ART){
+    if (!CAP.downloads) return toast('Qui non si possono salvare file. Usa l\'app dal link GitHub. 📲', 4500);
+    try { await CAP.downloads.save({filename: name, data: blob}); toast('💾 Salvato'); }
+    catch (e){ if (e && e.code === 'rejected_extension') toast('Questo tipo di file qui non si può salvare.'); else if (!e || e.code !== 'declined') toast('😕 Non sono riuscito a salvare il file.'); }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name.replace(/[\\/:*?"<>|]/g, '_'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
 const blobToDataURL = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
 const loadedScripts = {};
 function loadScript(src){
@@ -296,6 +311,22 @@ function modal(inner){
   ov.onclick = e => { if (e.target === ov || e.target.closest('[data-close]')) ov.remove(); };
   document.body.appendChild(ov); return ov;
 }
+// domande dentro l'app al posto delle finestrelle del browser (su claude.ai quelle non compaiono, e sul telefono sono scomode)
+function domanda(inner, valore){
+  return new Promise(res => {
+    const ov = modal(inner); let fatto = false;
+    const fine = v => { if (fatto) return; fatto = true; ov.remove(); res(v); };
+    new MutationObserver((_, o) => { if (!document.body.contains(ov)){ o.disconnect(); fine(null); } }).observe(document.body, {childList: true});
+    ov.querySelector('[data-ok]').onclick = () => fine(valore(ov));
+    ov.querySelector('[data-no]').onclick = () => fine(null);
+    const i = ov.querySelector('input');
+    if (i){ setTimeout(() => { i.focus(); i.select(); }, 50); i.onkeydown = e => { if (e.key === 'Enter') fine(valore(ov)); if (e.key === 'Escape') fine(null); }; }
+  });
+}
+const chiedi = (msg, def) => domanda(`<h3>${esc(msg)}</h3><input id="qv" value="${esc(def ?? '')}" spellcheck="true" lang="it">
+  <div class="row"><button class="btn" data-ok>✅ OK</button><button class="btn alt" data-no>Annulla</button></div>`, ov => ov.querySelector('#qv').value);
+const conferma = msg => domanda(`<h3>${esc(msg)}</h3>
+  <div class="row"><button class="btn" data-ok>👍 Sì</button><button class="btn alt" data-no>No</button></div>`, () => true).then(v => v === true);
 
 /* ===================== archivio (IndexedDB, resta sul dispositivo) ===================== */
 let dbp;
@@ -413,13 +444,33 @@ function stopReader(){ pauseReader(); }
 function closeReader(){ pauseReader(); if (R.ov){ R.ov.remove(); R.ov = null; } }
 
 /* ===================== dettato vocale ===================== */
-let rec = null, recBtn = null;
+let rec = null, recBtn = null, dictTarget = null;
+const recOn = btn => { recBtn = btn; if (btn){ btn.dataset.label = btn.innerHTML; btn.innerHTML = '⏹ Basta'; btn.classList.add('rec'); } };
+const recOff = () => { if (recBtn){ recBtn.innerHTML = recBtn.dataset.label; recBtn.classList.remove('rec'); recBtn = null; } };
+// dettato di claude.ai (nella copia su claude.ai il microfono del browser è bloccato)
+function collegaDettato(d){
+  d.onFinal(({text}) => { if (dictTarget) insertDictated(dictTarget, text.trim()); });
+  d.onState(({state, reason}) => {
+    if (state !== 'idle') return;
+    dictTarget = null; recOff();
+    if (reason === 'not_granted') toast('Devi permettere l\'uso del microfono.');
+    else if (reason === 'unavailable' || reason === 'upstream_error') toast('Il dettato ora non funziona. Riprova più tardi.');
+  });
+}
 function toggleDictation(target, btn){
+  const d = CAP.dictation;
+  if (IN_ART){
+    if (!d) return toast('Qui il dettato non c\'è (serve Chrome sul computer). Usa l\'app dal link GitHub. 📲', 4500);
+    if (d.active()){ d.stop(); return; }
+    dictTarget = target; recOn(btn);
+    d.start().catch(e => { recOff(); dictTarget = null; if (e && e.code === 'not_granted') toast('Devi permettere l\'uso del microfono.'); });
+    return;
+  }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return toast('Il dettato vocale non è disponibile qui. Prova con Chrome.');
   if (rec){ stopDictation(); return; }
   rec = new SR(); rec.lang = 'it-IT'; rec.continuous = true; rec.interimResults = false;
-  recBtn = btn; if (btn){ btn.dataset.label = btn.innerHTML; btn.innerHTML = '⏹ Basta'; btn.classList.add('rec'); }
+  recOn(btn);
   rec.onresult = e => {
     for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) insertDictated(target, e.results[i][0].transcript.trim());
   };
@@ -427,7 +478,11 @@ function toggleDictation(target, btn){
   rec.onend = () => { if (rec) try { rec.start(); } catch (_) {} };
   try { rec.start(); toast('🎤 Parla pure, scrivo io!'); } catch (_) { stopDictation(); }
 }
-function stopDictation(){ const r = rec; rec = null; if (r) try { r.stop(); } catch (_) {} if (recBtn){ recBtn.innerHTML = recBtn.dataset.label; recBtn.classList.remove('rec'); recBtn = null; } }
+function stopDictation(){
+  if (CAP.dictation && CAP.dictation.active()) CAP.dictation.stop();
+  const r = rec; rec = null; if (r) try { r.stop(); } catch (_) {}
+  recOff();
+}
 function insertDictated(el, t){
   if (!t) return;
   if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){ el.value = (el.value ? el.value.replace(/\s*$/, ' ') : '') + t; el.dispatchEvent(new Event('input')); return; }
@@ -534,7 +589,9 @@ let leaveHook = null;
 async function render(){
   if (leaveHook){ const h = leaveHook; leaveHook = null; await h(); }
   stopDictation();
-  const [r, id] = (location.hash.slice(1) || 'home').split('/');
+  // indirizzi tipo #doc-abc123 (solo lettere, cifre e trattino: claude.ai non passa la barra). Accetto anche i vecchi #doc/abc123
+  const h = location.hash.slice(1) || 'home', parti = h.match(/^([a-z]+)[-\/](.+)$/);
+  const [r, id] = parti ? [parti[1], parti[2]] : [h];
   const sezione = ['materia','doc','mappa','libro','scheda'].includes(r) ? 'materie' : r;
   document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.r === sezione));
   const views = {home:vHome, materie:vMaterie, materia:vMateria, doc:vDoc, mappa:vMappa, libro:vLibro, scheda:vScheda, leggi:vLeggi, compiti:vCompiti, classroom:vClassroom, impostazioni:vImpostazioni};
@@ -585,7 +642,7 @@ async function vMaterie(m){
   const items = await all();
   const conta = id => items.filter(i => i.subjectId === id && i.kind !== 'task').length;
   m.innerHTML = `<h1>🎒 Le mie materie</h1><p class="hint">Ogni materia è un quaderno: dentro trovi pagine, mappe, libri e compiti.</p>
-    <div class="grid">${subs.map(s => `<a class="subj" href="#materia/${s.id}" style="background:${s.color}"><span class="e">${s.emoji}</span><span><b>${esc(s.name)}</b><br><small>${conta(s.id)} elementi</small></span></a>`).join('')}
+    <div class="grid">${subs.map(s => `<a class="subj" href="#materia-${s.id}" style="background:${s.color}"><span class="e">${s.emoji}</span><span><b>${esc(s.name)}</b><br><small>${conta(s.id)} elementi</small></span></a>`).join('')}
     <button class="subj" style="background:var(--card);color:#fff;border:2px dashed var(--cardB);font:inherit;cursor:pointer" onclick="subjectModal()"><span class="e">➕</span><b>Nuova materia</b></button></div>`;
 }
 function subjectModal(s){
@@ -603,7 +660,7 @@ function subjectModal(s){
     await put(o); ov.remove(); render();
   };
   if (s) ov.querySelector('#sdel').onclick = async () => {
-    if (!confirm(`Eliminare "${s.name}" e tutto quello che c'è dentro (pagine, mappe, libri, compiti)?`)) return;
+    if (!await conferma(`Eliminare "${s.name}" e tutto quello che c'è dentro (pagine, mappe, libri, compiti)?`)) return;
     for (const it of (await all()).filter(i => i.subjectId === s.id)) await del(it.id);
     await del(s.id); ov.remove(); location.hash = 'materie';
   };
@@ -622,32 +679,33 @@ async function vMateria(m, id){
   if (subTab === 'quaderno'){
     const docs = items.filter(i => i.kind === 'doc').sort((a, b) => b.updated - a.updated);
     c.innerHTML = `<button class="btn" onclick="newDoc('${id}')">➕ Nuova pagina</button>
-      <div class="list">${docs.map(d => `<a class="item" href="#doc/${d.id}"><span class="ie">📄</span><span><b>${esc(d.title || 'Senza titolo')}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Il quaderno è vuoto. Scrivi la prima pagina! ✍️')}</div>`;
+      <div class="list">${docs.map(d => `<a class="item" href="#doc-${d.id}"><span class="ie">📄</span><span><b>${esc(d.title || 'Senza titolo')}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Il quaderno è vuoto. Scrivi la prima pagina! ✍️')}</div>`;
   } else if (subTab === 'schede'){
     const sh = items.filter(i => i.kind === 'sheet').sort((a, b) => b.added - a.added);
     c.innerHTML = `<div class="row" style="margin-top:0">
         <label class="btn" style="margin:0">📷 Fotografa una scheda<input type="file" accept="image/*" capture="environment" hidden onchange="addSheet(this,'${id}')"></label>
         <label class="btn alt" style="margin:0">🖼️ Scegli una foto<input type="file" accept="image/*" hidden onchange="addSheet(this,'${id}')"></label></div>
       <p class="hint">Fotografa la scheda che ti dà il prof: poi ci puoi scrivere sopra, evidenziare e farti leggere il testo.</p>
-      ${sh.length ? `<div class="incollate">${sh.map(x => `<a class="incollata" href="#scheda/${x.id}"><img data-thumb="${x.id}" alt=""><b>${esc(x.title)}</b><small>${fmtDate(x.added)}</small></a>`).join('')}</div>` : vuoto('Nessuna scheda incollata. Fotografa la prima! 📎')}`;
+      ${sh.length ? `<div class="incollate">${sh.map(x => `<a class="incollata" href="#scheda-${x.id}"><img data-thumb="${x.id}" alt=""><b>${esc(x.title)}</b><small>${fmtDate(x.added)}</small></a>`).join('')}</div>` : vuoto('Nessuna scheda incollata. Fotografa la prima! 📎')}`;
     c.querySelectorAll('[data-thumb]').forEach(img => { const x = sh.find(y => y.id === img.dataset.thumb); const b = x.thumb || x.blob; img.src = URL.createObjectURL(b); });
   } else if (subTab === 'classroom'){
     const list = items.filter(i => i.from === 'classroom').sort((a, b) => (b.added || b.updated) - (a.added || a.updated));
-    c.innerHTML = `<div class="row" style="margin-top:0"><button class="btn alt" onclick="window.open(CLASSROOM_URL,'_blank','noopener')">🎓 Apri Classroom</button>
+    c.innerHTML = `<div class="row" style="margin-top:0"><a class="btn alt" href="${CLASSROOM_URL}" target="_blank" rel="noopener">🎓 Apri Classroom</a>
       <label class="btn" style="margin:0">📥 Prendi l'allegato<input type="file" multiple hidden onchange="importAllegati(this,'${id}')"></label></div><div id="cstatus"></div>
       <p class="hint">Scarica l'allegato da Classroom, poi toccalo qui: finisce nel quaderno di ${esc(s.name)}.</p>${allegatiHTML(list, {[id]: s})}`;
   } else if (subTab === 'mappe'){
     const maps = items.filter(i => i.kind === 'map').sort((a, b) => b.updated - a.updated);
     c.innerHTML = `<button class="btn" onclick="newMap('${id}')">➕ Nuova mappa</button>
-      <div class="list">${maps.map(d => `<a class="item" href="#mappa/${d.id}"><span class="ie">🧠</span><span><b>${esc(d.title)}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Nessuna mappa. Le mappe aiutano a ricordare gli argomenti! 🧠')}</div>`;
+      <div class="list">${maps.map(d => `<a class="item" href="#mappa-${d.id}"><span class="ie">🧠</span><span><b>${esc(d.title)}</b><small>${fmtDate(d.updated)}</small></span></a>`).join('') || vuoto('Nessuna mappa. Le mappe aiutano a ricordare gli argomenti! 🧠')}</div>`;
   } else if (subTab === 'libri'){
     const books = items.filter(i => i.kind === 'book').sort((a, b) => a.title.localeCompare(b.title));
     const links = items.filter(i => i.kind === 'link').sort((a, b) => a.title.localeCompare(b.title));
     c.innerHTML = `<div class="row" style="margin-top:0"><label class="btn" style="margin:0">➕ Carica libro (PDF o foto)<input type="file" accept="application/pdf,image/*" multiple hidden onchange="addBooks(this,'${id}')"></label>
       ${Object.entries(PIATTAFORME).map(([k, p]) => `<button class="btn alt" onclick="apriPiattaforma('${k}')">${p.e} ${p.n}</button>`).join('')}<button class="btn alt" onclick="collegaLibro('${id}')">🔗 Collega un libro digitale</button></div>
       <p class="hint">Qui carichi il PDF del libro o le foto delle pagine. I libri digitali degli editori si leggono nelle loro app (bSmart, HUB): collegali qui per trovarli nella materia giusta.</p>
-      <div class="list">${links.map(l => { const p = PIATTAFORME[l.app] || PIATTAFORME.bsmart; return `<div class="item"><button style="display:flex;gap:12px;align-items:center;flex:1;background:none;border:0;color:#fff;font:inherit;text-align:left;cursor:pointer" onclick="apriLink('${l.id}')"><span class="ie">${p.e}</span><span><b>${esc(l.title)}</b><small>${l.url ? 'Si apre il libro su' : 'Si apre in'} ${p.n}</small></span></button><button class="ico" onclick="delLink('${l.id}')">🗑️</button></div>`; }).join('')}
-      ${books.map(b => `<div class="item"><a href="#libro/${b.id}" style="display:flex;gap:12px;align-items:center;flex:1;color:#fff;text-decoration:none"><span class="ie">${b.type === 'pdf' ? '📕' : '🖼️'}</span><span><b>${esc(b.title)}</b><small>${b.type === 'pdf' ? 'PDF' : 'Foto'}, ${(b.blob.size / 1048576).toFixed(1)} MB</small></span></a><button class="ico" onclick="delBook('${b.id}')">🗑️</button></div>`).join('')}
+      <div class="list">${links.map(l => { const p = PIATTAFORME[l.app] || PIATTAFORME.bsmart; const dentro = `<span class="ie">${p.e}</span><span><b>${esc(l.title)}</b><small>${l.url ? 'Si apre il libro su' : 'Si apre in'} ${p.n}</small></span>`, stile = 'display:flex;gap:12px;align-items:center;flex:1;background:none;border:0;color:#fff;font:inherit;text-align:left;cursor:pointer;text-decoration:none';
+        return `<div class="item">${/^https:\/\//i.test(l.url || '') ? `<a style="${stile}" href="${esc(l.url)}" target="_blank" rel="noopener" onclick="avvisoOffline()">${dentro}</a>` : `<button style="${stile}" onclick="apriPiattaforma('${l.app}')">${dentro}</button>`}<button class="ico" onclick="delLink('${l.id}')">🗑️</button></div>`; }).join('')}
+      ${books.map(b => `<div class="item"><a href="#libro-${b.id}" style="display:flex;gap:12px;align-items:center;flex:1;color:#fff;text-decoration:none"><span class="ie">${b.type === 'pdf' ? '📕' : '🖼️'}</span><span><b>${esc(b.title)}</b><small>${b.type === 'pdf' ? 'PDF' : 'Foto'}, ${(b.blob.size / 1048576).toFixed(1)} MB</small></span></a><button class="ico" onclick="delBook('${b.id}')">🗑️</button></div>`).join('')}
       ${books.length || links.length ? '' : vuoto('Nessun libro. 📚')}</div>`;
   } else {
     const sm = {[id]: s};
@@ -661,7 +719,7 @@ const FOGLI = [['bianco','⬜ Bianco'],['righe','📏 Righe'],['quadretti','🔲
 async function newDoc(sid){
   const s = await get(sid);
   const foglio = s && /matem|geometr|tecnolog|scienz/i.test(s.name) ? 'quadretti' : 'righe';
-  const d = {id: uid(), kind: 'doc', subjectId: sid, title: '', html: '', foglio, updated: Date.now()}; await put(d); location.hash = 'doc/' + d.id; }
+  const d = {id: uid(), kind: 'doc', subjectId: sid, title: '', html: '', foglio, updated: Date.now()}; await put(d); location.hash = 'doc-' + d.id; }
 let curDoc = null, docTimer = null, docZoom = 1;
 const docEl = () => $('#paper');
 async function saveDoc(){
@@ -673,14 +731,14 @@ async function saveDoc(){
 async function vDoc(m, id){
   curDoc = await get(id); if (!curDoc){ location.hash = 'materie'; return; }
   const sub = await get(curDoc.subjectId);
-  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curDoc.subjectId}">⬅</a><input class="title" id="dtitle" value="${esc(curDoc.title)}" placeholder="Scrivi il titolo..." spellcheck="true" lang="it"><span class="hint" id="dsave"></span></div>
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia-${curDoc.subjectId}">⬅</a><input class="title" id="dtitle" value="${esc(curDoc.title)}" placeholder="Scrivi il titolo..." spellcheck="true" lang="it"><span class="hint" id="dsave"></span></div>
     <div class="toolbar" id="dtools">
       <button data-c="bold" title="Grassetto"><b>G</b></button><button data-c="italic" title="Corsivo"><i>C</i></button><button data-c="underline" title="Sottolineato"><u>S</u></button>
       <button data-c="hiliteColor" data-v="#fff176" title="Evidenzia">🖍️</button><button data-c="formatBlock" data-v="h2">Titolo</button><button data-c="formatBlock" data-v="p">Testo</button><button data-c="insertUnorderedList">• Elenco</button>
       <select id="dfmt" title="Tipo di foglio">${FOGLI.map(([k, n]) => `<option value="${k}" ${(curDoc.foglio || 'bianco') === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
       <button class="hl" id="micb">🎤 Detta</button><button id="dread">🔊 Rileggi</button>${isMath(sub) ? '<button id="dcalc" class="hl">🧮 Calcola</button>' : ''}
       <button id="dzm">A−</button><button id="dzp">A+</button>
-      <button id="dword">⬇️ Word</button><button onclick="window.print()">🖨️</button><button id="ddel">🗑️</button>
+      <button id="dword">⬇️ Word</button>${IN_ART ? '' : '<button onclick="window.print()">🖨️</button>'}<button id="ddel">🗑️</button>
     </div>
     <div id="paper" class="paper doc ${curDoc.foglio || 'bianco'}" contenteditable="true" spellcheck="true" lang="it" autocapitalize="sentences">${curDoc.html || ''}</div>
     <p class="hint">✍️ Le parole sbagliate vengono sottolineate in rosso: tocca la parola (sul PC clic destro) per vedere come si scrive. La pagina si salva da sola.</p>`;
@@ -697,14 +755,66 @@ async function vDoc(m, id){
   $('#dzm').onclick = () => p.style.setProperty('--z', docZoom = Math.max(.7, docZoom - .1));
   $('#dzp').onclick = () => p.style.setProperty('--z', docZoom += .1);
   $('#dword').onclick = () => { saveDoc(); downloadDoc(); };
-  $('#ddel').onclick = async () => { if (!confirm('Buttare via questa pagina?')) return; clearTimeout(docTimer); await del(curDoc.id); const sid = curDoc.subjectId; curDoc = null; location.hash = 'materia/' + sid; };
+  $('#ddel').onclick = async () => { if (!await conferma('Buttare via questa pagina?')) return; clearTimeout(docTimer); await del(curDoc.id); const sid = curDoc.subjectId; curDoc = null; location.hash = 'materia-' + sid; };
   leaveHook = saveDoc;
   if (!curDoc.html) $('#dtitle').focus();
 }
 function downloadDoc(){
   const t = $('#dtitle').value || 'pagina';
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(t)}</title><style>body{font-family:Verdana,sans-serif;font-size:14pt;line-height:1.7}</style></head><body><h1>${esc(t)}</h1>${docEl().innerHTML}</body></html>`;
-  download(new Blob(['﻿', html], {type: 'application/msword'}), t + '.doc');
+  download(docxBlob(t, docEl()), t + '.docx');
+}
+/* --- file Word .docx vero: zip senza compressione con il minimo indispensabile (titolo, paragrafi, G/C/S, evidenziato, elenchi) --- */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipStore(files){
+  const enc = new TextEncoder(), parti = [], centrale = []; let off = 0;
+  for (const f of files){
+    const nome = enc.encode(f.name), dati = enc.encode(f.data), crc = crc32(dati);
+    const loc = new DataView(new ArrayBuffer(30));
+    loc.setUint32(0, 0x04034b50, true); loc.setUint16(4, 20, true); loc.setUint16(6, 0x0800, true);
+    loc.setUint32(14, crc, true); loc.setUint32(18, dati.length, true); loc.setUint32(22, dati.length, true); loc.setUint16(26, nome.length, true);
+    const cen = new DataView(new ArrayBuffer(46));
+    cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true);
+    cen.setUint32(16, crc, true); cen.setUint32(20, dati.length, true); cen.setUint32(24, dati.length, true); cen.setUint16(28, nome.length, true); cen.setUint32(42, off, true);
+    parti.push(loc, nome, dati); centrale.push(cen, nome); off += 30 + nome.length + dati.length;
+  }
+  const dim = centrale.reduce((s, p) => s + p.byteLength, 0), fine = new DataView(new ArrayBuffer(22));
+  fine.setUint32(0, 0x06054b50, true); fine.setUint16(8, files.length, true); fine.setUint16(10, files.length, true); fine.setUint32(12, dim, true); fine.setUint32(16, off, true);
+  return new Blob([...parti, ...centrale, fine], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+function docxBlob(titolo, el){
+  const x = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const run = (testo, f, sz) => `<w:r><w:rPr><w:rFonts w:ascii="Verdana" w:hAnsi="Verdana"/>${f.b ? '<w:b/>' : ''}${f.i ? '<w:i/>' : ''}${f.u ? '<w:u w:val="single"/>' : ''}${f.h ? '<w:highlight w:val="yellow"/>' : ''}<w:sz w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${x(testo)}</w:t></w:r>`;
+  const par = (runs, extra = '') => `<w:p><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/>${extra}</w:pPr>${runs}</w:p>`;
+  const righe = [par(run(titolo, {b: 1}, 36))];
+  // spezzo il contenuto in paragrafi, tenendo lo stile di ogni pezzo di testo
+  const inline = (n, f, sz) => {
+    if (n.nodeType === 3) return n.textContent ? run(n.textContent, f, sz) : '';
+    if (n.nodeType !== 1) return '';
+    if (n.tagName === 'BR') return '<w:r><w:br/></w:r>';
+    const g = {...f}, t = n.tagName, st = n.getAttribute('style') || '';
+    if (t === 'B' || t === 'STRONG' || /font-weight:\s*(bold|[6-9]00)/.test(st)) g.b = 1;
+    if (t === 'I' || t === 'EM' || /italic/.test(st)) g.i = 1;
+    if (t === 'U' || /underline/.test(st)) g.u = 1;
+    if (t === 'MARK' || /background/.test(st)) g.h = 1;
+    return [...n.childNodes].map(c => inline(c, g, sz)).join('');
+  };
+  const blocco = (n, f = {}) => {
+    if (n.nodeType === 3){ if (n.textContent.trim()) righe.push(par(run(n.textContent, f, 28))); return; }
+    if (n.nodeType !== 1) return;
+    const t = n.tagName;
+    if (t === 'UL' || t === 'OL'){ [...n.children].forEach((li, k) => righe.push(par(run(t === 'OL' ? (k + 1) + '. ' : '• ', {}, 28) + inline(li, {}, 28), '<w:ind w:left="360"/>'))); return; }
+    if (t === 'H1' || t === 'H2' || t === 'H3'){ righe.push(par(inline(n, {b: 1}, 32))); return; }
+    if ([...n.children].some(c => /^(P|DIV|UL|OL|H[1-3])$/.test(c.tagName))){ [...n.childNodes].forEach(c => blocco(c, f)); return; }
+    righe.push(par(inline(n, f, 28) || ''));
+  };
+  [...el.childNodes].forEach(n => blocco(n));
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  return zipStore([
+    {name: '[Content_Types].xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'},
+    {name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'},
+    {name: 'word/document.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="${W}"><w:body>${righe.join('')}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr></w:body></w:document>`}
+  ]);
 }
 window.addEventListener('pagehide', () => { if (docTimer) saveDoc(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && docTimer) saveDoc(); });
@@ -785,10 +895,10 @@ function openCalc(target){
 /* ===================== MAPPE ===================== */
 const PALETTE = ['#ff9f43','#54a0ff','#1dd1a1','#ff6b9d','#a29bfe','#feca57','#48dbfb','#ff7675'];
 async function newMap(sid, root){
-  let title = root ? root.text : prompt('Di che argomento è la mappa?', '');
+  let title = root ? root.text : await chiedi('Di che argomento è la mappa?', '');
   if (!title || !title.trim()) return;
   const m = {id: uid(), kind: 'map', subjectId: sid, title: title.trim(), root: root || {id: uid(), text: title.trim(), children: []}, updated: Date.now()};
-  await put(m); location.hash = 'mappa/' + m.id;
+  await put(m); location.hash = 'mappa-' + m.id;
 }
 let curMap = null, selNode = null, mapZoom = 1;
 function findNode(n, id, parent = null){ if (n.id === id) return {n, parent}; for (const c of n.children || []){ const r = findNode(c, id, n); if (r) return r; } return null; }
@@ -836,7 +946,7 @@ function drawMap(){
 async function vMappa(m, id){
   curMap = await get(id); if (!curMap){ location.hash = 'materie'; return; }
   selNode = curMap.root.id;
-  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curMap.subjectId}">⬅</a><input class="title" id="mtitle" value="${esc(curMap.title)}"></div>
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia-${curMap.subjectId}">⬅</a><input class="title" id="mtitle" value="${esc(curMap.title)}"></div>
     <div class="toolbar">
       <button class="hl" onclick="mAdd()">➕ Ramo</button><button onclick="mEdit()">✏️ Cambia</button><button onclick="mColor()">🎨 Colore</button><button onclick="mDel()">🗑️ Togli</button><button onclick="mSpeak()">🔊</button>
       <button onclick="mapZoom=Math.max(.4,mapZoom*.85);drawMap()">🔍−</button><button onclick="mapZoom*=1.15;drawMap()">🔍+</button>
@@ -854,17 +964,17 @@ async function vMappa(m, id){
 }
 async function mAdd(){
   const s = findNode(curMap.root, selNode); if (!s) return;
-  const t = prompt(`Nuovo ramo sotto "${s.n.text}":`, ''); if (!t || !t.trim()) return;
+  const t = await chiedi(`Nuovo ramo sotto "${s.n.text}":`, ''); if (!t || !t.trim()) return;
   const c = {id: uid(), text: t.trim(), children: []}; (s.n.children ||= []).push(c);
   selNode = s.n.id; await saveMap(); drawMap();
 }
-async function mEdit(){ const s = findNode(curMap.root, selNode); if (!s) return; const t = prompt('Scrivi il nuovo testo:', s.n.text); if (t == null || !t.trim()) return; s.n.text = t.trim(); if (!s.parent){ curMap.title = s.n.text; $('#mtitle').value = s.n.text; } await saveMap(); drawMap(); }
+async function mEdit(){ const s = findNode(curMap.root, selNode); if (!s) return; const t = await chiedi('Scrivi il nuovo testo:', s.n.text); if (t == null || !t.trim()) return; s.n.text = t.trim(); if (!s.parent){ curMap.title = s.n.text; $('#mtitle').value = s.n.text; } await saveMap(); drawMap(); }
 async function mColor(){ const s = findNode(curMap.root, selNode); if (!s || !s.parent) return toast('Scegli prima un ramo.'); const i = PALETTE.indexOf(s.n._c); s.n.color = PALETTE[(i + 1) % PALETTE.length]; await saveMap(); drawMap(); }
-async function mDel(){ const s = findNode(curMap.root, selNode); if (!s || !s.parent) return toast('Il centro della mappa non si può togliere.'); if ((s.n.children || []).length && !confirm('Togliere anche i rami collegati?')) return; s.parent.children = s.parent.children.filter(c => c !== s.n); selNode = s.parent.id; await saveMap(); drawMap(); }
+async function mDel(){ const s = findNode(curMap.root, selNode); if (!s || !s.parent) return toast('Il centro della mappa non si può togliere.'); if ((s.n.children || []).length && !await conferma('Togliere anche i rami collegati?')) return; s.parent.children = s.parent.children.filter(c => c !== s.n); selNode = s.parent.id; await saveMap(); drawMap(); }
 function mSpeak(){ const s = findNode(curMap.root, selNode); if (s) speak(s.n.text); }
 function mapOutline(n, d = 0){ return (d ? '' : n.text + '.\n') + (n.children || []).map(c => (d ? '' : '') + c.text + ((c.children || []).length ? ': ' + c.children.map(x => x.text + ((x.children || []).length ? ' (' + x.children.map(y => y.text).join(', ') + ')' : '')).join(', ') : '') + '.').join('\n'); }
 function mReadAll(){ openReader(mapOutline(curMap.root), 'Mappa'); }
-async function mDelMap(){ if (!confirm('Buttare via tutta la mappa?')) return; await del(curMap.id); location.hash = 'materia/' + curMap.subjectId; }
+async function mDelMap(){ if (!await conferma('Buttare via tutta la mappa?')) return; await del(curMap.id); location.hash = 'materia-' + curMap.subjectId; }
 function parseOutline(text, title){
   const lines = text.split('\n').filter(l => l.trim());
   if (!lines.length) return null;
@@ -888,7 +998,7 @@ function mFromText(){
   ov.querySelector('#mok').onclick = async () => {
     stopDictation();
     const root = parseOutline(ov.querySelector('#mt').value); if (!root) return toast('Scrivi almeno una riga.');
-    if (curMap.root.children.length && !confirm('Sostituire la mappa attuale con questa nuova?')) return;
+    if (curMap.root.children.length && !await conferma('Sostituire la mappa attuale con questa nuova?')) return;
     curMap.root = root; curMap.title = root.text; selNode = root.id; $('#mtitle').value = root.text;
     await saveMap(); ov.remove(); drawMap();
   };
@@ -912,10 +1022,10 @@ async function makeSheet(img, sid, title){
 }
 async function addSheet(input, sid){
   const f = input.files[0]; if (!f) return;
-  const title = (prompt('Come chiamiamo questa scheda?', 'Scheda del ' + fmtDate(Date.now())) || '').trim() || 'Scheda';
+  const title = (await chiedi('Come chiamiamo questa scheda?', 'Scheda del ' + fmtDate(Date.now())) || '').trim() || 'Scheda';
   const sh = await makeSheet(f, sid, title);
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
-  await put(sh); input.value = ''; location.hash = 'scheda/' + sh.id;
+  await put(sh); input.value = ''; location.hash = 'scheda-' + sh.id;
 }
 let curSheet = null, shImg = null, shTool = 'pen', shColor = '#1e3a8a', shThick = false, shZoom = 1, shTimer = null;
 const SH_COLORI = ['#1e1e2a', '#1e3a8a', '#d62828', '#2a9d4b'];
@@ -961,7 +1071,7 @@ const shSchedule = () => { const s = $('#ssave'); if (s) s.textContent = '...'; 
 async function vScheda(m, id){
   curSheet = await get(id); if (!curSheet){ location.hash = 'materie'; return; }
   shImg = await createImageBitmap(curSheet.blob); shZoom = 1;
-  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curSheet.subjectId}">⬅</a><input class="title" id="stitle" value="${esc(curSheet.title)}"><span class="hint" id="ssave"></span></div>
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia-${curSheet.subjectId}">⬅</a><input class="title" id="stitle" value="${esc(curSheet.title)}"><span class="hint" id="ssave"></span></div>
     <div class="toolbar" id="stools">
       <button data-t="move">✋ Sposta</button><button data-t="pen">✏️ Penna</button><button data-t="hl">🖍️ Evidenzia</button><button data-t="text">🔤 Scrivi</button><button data-t="erase">🧽 Gomma</button>
       ${SH_COLORI.map(c => `<button class="sw" data-c="${c}" style="background:${c}" title="Colore"></button>`).join('')}
@@ -992,7 +1102,7 @@ async function vScheda(m, id){
   $('#srot').onclick = shRotate;
   $('#sread').onclick = async () => { try { openReader(await ocr(curSheet.blob, $('#sstatus')), curSheet.title); } catch (e){ $('#sstatus').innerHTML = ''; toast('😕 ' + e.message); } };
   $('#sdl').onclick = () => shCompose().toBlob(b => download(b, curSheet.title + '.jpg'), 'image/jpeg', .92);
-  $('#sdel').onclick = async () => { if (!confirm('Staccare e buttare via questa scheda?')) return; clearTimeout(shTimer); leaveHook = null; await del(curSheet.id); location.hash = 'materia/' + curSheet.subjectId; };
+  $('#sdel').onclick = async () => { if (!await conferma('Staccare e buttare via questa scheda?')) return; clearTimeout(shTimer); leaveHook = null; await del(curSheet.id); location.hash = 'materia-' + curSheet.subjectId; };
   $('#stitle').oninput = shSchedule;
 
   // disegno: le coordinate sono in pixel della foto, così restano giuste con qualsiasi zoom
@@ -1036,7 +1146,7 @@ function shText([x, y]){
   };
 }
 async function shRotate(){
-  if (curSheet.ops.length && !confirm('Girando la foto si cancella quello che hai scritto sopra. Vuoi girarla lo stesso?')) return;
+  if (curSheet.ops.length && !await conferma('Girando la foto si cancella quello che hai scritto sopra. Vuoi girarla lo stesso?')) return;
   const c = document.createElement('canvas'); c.width = curSheet.h; c.height = curSheet.w;
   const x = c.getContext('2d'); x.translate(c.width, 0); x.rotate(Math.PI / 2); x.drawImage(shImg, 0, 0, curSheet.w, curSheet.h);
   curSheet.blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .9));
@@ -1049,9 +1159,9 @@ async function shRotate(){
 // il ragazzo li scarica da Classroom e qui li smistiamo nel quaderno della materia.
 const CLASSROOM_URL = 'https://classroom.google.com/';
 const ALLEGATO = {
-  book: {e: '📕', dove: 'Libri', link: x => '#libro/' + x.id},
-  sheet: {e: '📎', dove: 'Schede', link: x => '#scheda/' + x.id},
-  doc: {e: '📄', dove: 'Quaderno', link: x => '#doc/' + x.id},
+  book: {e: '📕', dove: 'Libri', link: x => '#libro-' + x.id},
+  sheet: {e: '📎', dove: 'Schede', link: x => '#scheda-' + x.id},
+  doc: {e: '📄', dove: 'Quaderno', link: x => '#doc-' + x.id},
   file: {e: '🗂️', dove: 'File', link: null}
 };
 function allegatiHTML(list, sm){
@@ -1067,7 +1177,7 @@ async function vClassroom(m){
   const subs = await subjects(), sm = Object.fromEntries(subs.map(s => [s.id, s]));
   const recenti = (await all()).filter(i => i.from === 'classroom').sort((a, b) => (b.added || b.updated) - (a.added || a.updated)).slice(0, 20);
   m.innerHTML = `<h1>🎓 Classroom</h1>
-    <div class="row"><button class="btn" onclick="window.open(CLASSROOM_URL,'_blank','noopener')">🎓 Apri Classroom</button></div>
+    <div class="row"><a class="btn" href="${CLASSROOM_URL}" target="_blank" rel="noopener">🎓 Apri Classroom</a></div>
     <div class="card"><h3>📥 Metti un allegato nel quaderno</h3>
       <p class="hint">1. In Classroom apri il compito e tocca l'allegato.<br>2. Scaricalo (su iPhone: tasto Condividi → <b>Salva su File</b>).<br>3. Torna qui, scegli il quaderno e tocca <b>Prendi l'allegato</b>.</p>
       <label>In quale quaderno?<select id="csub">${subs.map(s => `<option value="${s.id}">${s.emoji} ${esc(s.name)}</option>`).join('')}</select></label>
@@ -1102,7 +1212,7 @@ async function importAllegati(input, sid){
   render();
 }
 async function apriFile(id){ const f = await get(id); if (f) download(f.blob, f.title); }
-async function delFile(id){ if (!confirm('Togliere questo file?')) return; await del(id); render(); }
+async function delFile(id){ if (!await conferma('Togliere questo file?')) return; await del(id); render(); }
 
 /* ===================== LIBRI DIGITALI DEGLI EDITORI (bSmart, HUB) ===================== */
 // i libri degli editori sono protetti e si leggono solo nelle loro app: qui ci sono i collegamenti,
@@ -1147,13 +1257,8 @@ async function collegaLibro(sid){
     ov.remove(); toast(`🔗 Collegato in ${scelte.length} materi${scelte.length === 1 ? 'a' : 'e'}`); render();
   };
 }
-async function apriLink(id){
-  const l = await get(id); if (!l) return;
-  if (!l.url) return apriPiattaforma(l.app);
-  if (!navigator.onLine) toast('Il libro sul sito si apre solo con internet. Offline usa l\'app dell\'editore. 📶', 4500);
-  window.open(l.url, '_blank', 'noopener');
-}
-async function delLink(id){ if (!confirm('Togliere il collegamento? Il libro resta nell\'app dell\'editore.')) return; await del(id); render(); }
+function avvisoOffline(){ if (!navigator.onLine) toast('Il libro sul sito si apre solo con internet. Offline usa l\'app dell\'editore. 📶', 4500); }
+async function delLink(id){ if (!await conferma('Togliere il collegamento? Il libro resta nell\'app dell\'editore.')) return; await del(id); render(); }
 
 /* ===================== LIBRI ===================== */
 const PDFJS = 'lib/';
@@ -1164,9 +1269,9 @@ async function addBooks(input, sid){
   toast(files.length > 1 ? `${files.length} libri caricati 📚` : 'Libro caricato 📚'); render();
 }
 async function delBook(id, esci){
-  if (!confirm('Togliere questo libro dall\'app?')) return;
+  if (!await conferma('Togliere questo libro dall\'app?')) return;
   const b = await get(id); await del(id);
-  if (esci && b) location.hash = 'materia/' + b.subjectId; else render();
+  if (esci && b) location.hash = 'materia-' + b.subjectId; else render();
 }
 // la pagina del PDF (o la foto) diventa una scheda su cui scrivere, es. un esercizio da Classroom
 async function bookToSheet(){
@@ -1181,13 +1286,13 @@ async function bookToSheet(){
   }
   const sh = await makeSheet(img, curBook.subjectId, curBook.title + (curBook.type === 'pdf' ? ', pag. ' + curBook.page : ''));
   if (curBook.from) sh.from = curBook.from;
-  await put(sh); location.hash = 'scheda/' + sh.id;
+  await put(sh); location.hash = 'scheda-' + sh.id;
 }
 let curBook = null, pdfDoc = null, pdfBookId = null, bookZoom = 1, bookUrl = null;
 async function vLibro(m, id){
   curBook = await get(id); if (!curBook){ location.hash = 'materie'; return; }
   const pdf = curBook.type === 'pdf';
-  m.innerHTML = `<div class="bar"><a class="back" href="#materia/${curBook.subjectId}">⬅</a><h1 style="font-size:1.2em">${esc(curBook.title)}</h1></div>
+  m.innerHTML = `<div class="bar"><a class="back" href="#materia-${curBook.subjectId}">⬅</a><h1 style="font-size:1.2em">${esc(curBook.title)}</h1></div>
     <div class="toolbar">${pdf ? `<button onclick="bookPage(-1)">◀</button><span class="pg" id="pg" onclick="bookGo()"></span><button onclick="bookPage(1)">▶</button>` : ''}
       <button onclick="bookZoom=Math.max(.4,bookZoom-.2);drawBook()">🔍−</button><button onclick="bookZoom+=.2;drawBook()">🔍+</button>
       <button class="hl" onclick="readBook()">🔊 Leggimi la pagina</button><button onclick="bookToSheet()">✏️ Scrivici sopra</button><button onclick="bookToMap()">🧠 Fai una mappa</button><button onclick="delBook('${curBook.id}',true)">🗑️</button></div>
@@ -1220,7 +1325,7 @@ async function drawBook(){
   } finally { drawing = false; }
 }
 async function bookPage(d){ curBook.page += d; await drawBook(); put(curBook); }
-async function bookGo(){ const n = parseInt(prompt(`Vai a pagina (1-${pdfDoc.numPages}):`, curBook.page)); if (n){ curBook.page = n; await drawBook(); put(curBook); } }
+async function bookGo(){ const n = parseInt(await chiedi(`Vai a pagina (1-${pdfDoc.numPages}):`, curBook.page)); if (n){ curBook.page = n; await drawBook(); put(curBook); } }
 async function bookText(){
   const st = $('#bstatus');
   if (curBook.type === 'pdf'){
@@ -1294,7 +1399,7 @@ async function leggiPaste(){
 }
 async function leggiSave(){
   const t = $('#ltext').value.trim(); if (!t) return toast('Non c\'è testo da salvare.');
-  const titolo = prompt('Che titolo diamo a questa pagina?', t.split(/[.\n]/)[0].slice(0, 40)); if (titolo == null) return;
+  const titolo = await chiedi('Che titolo diamo a questa pagina?', t.split(/[.\n]/)[0].slice(0, 40)); if (titolo == null) return;
   const d = {id: uid(), kind: 'doc', subjectId: $('#lsub').value, title: titolo, html: t.split(/\n+/).map(p => `<p>${esc(p)}</p>`).join(''), updated: Date.now()};
   await put(d); toast('Salvata nel quaderno 📓');
 }
@@ -1329,27 +1434,25 @@ async function toggleTask(id){
   await put(t); saveSettings(); if (t.done) celebrate(S.stars % XP_LIV === 0); render();
 }
 async function speakTask(id){ const t = await get(id); const s = await get(t.subjectId); speak(`${s ? s.name : ''}, per ${fmtDue(t.due)}: ${t.text}`); }
-async function delTask(id){ if (!confirm('Eliminare questo compito?')) return; await del(id); render(); }
+async function delTask(id){ if (!await conferma('Eliminare questo compito?')) return; await del(id); render(); }
 async function vCompiti(m){
   const subs = await subjects(); const sm = Object.fromEntries(subs.map(s => [s.id, s]));
   const tasks = (await all('task')).sort((a, b) => a.due.localeCompare(b.due));
   const t0 = today(), t1 = addDays(1);
   const gruppi = [['⏰ In ritardo', x => !x.done && x.due < t0], ['🔥 Per oggi', x => !x.done && x.due === t0], ['📌 Per domani', x => !x.done && x.due === t1], ['🗓️ Prossimi giorni', x => !x.done && x.due > t1], ['✅ Fatti di recente', x => x.done]];
-  const reg = REGISTRI[S.registro] || REGISTRI.altro;
+  const reg = REGISTRI[S.registro] || REGISTRI.altro, regUrl = registroUrl();
   m.innerHTML = `<h1>📝 I miei compiti</h1>
     <div class="row">
-      <button class="btn alt" onclick="openRegistro()">🏫 Apri ${esc(reg.n)}</button>
+      ${regUrl ? `<a class="btn alt" href="${esc(regUrl)}" target="_blank" rel="noopener">🏫 Apri ${esc(reg.n)}</a>` : `<button class="btn alt" onclick="openRegistro()">🏫 Apri ${esc(reg.n)}</button>`}
       <button class="btn alt" onclick="importRegistro()">📋 Copia dal registro</button>
       ${'Notification' in window && Notification.permission !== 'granted' ? '<button class="btn alt" onclick="enableNotif()">🔔 Attiva avvisi</button>' : ''}
     </div>
     <div class="card">${taskForm(subs, subs[0]?.id)}</div>
     ${gruppi.map(([h, f]) => { let l = tasks.filter(f); if (h.startsWith('✅')) l = l.slice(-8).reverse(); return l.length ? `<h2>${h}</h2>` + l.map(t => taskRow(t, sm)).join('') : ''; }).join('') || '<p class="empty card">Nessun compito. Aggiungine uno qui sopra! 😎</p>'}`;
 }
-function openRegistro(){
-  const u = S.registro === 'altro' ? S.registroUrl : REGISTRI[S.registro].u;
-  if (!u){ toast('Scrivi il link del registro nelle Opzioni ⚙️'); location.hash = 'impostazioni'; return; }
-  window.open(u, '_blank', 'noopener');
-}
+// link veri (<a>) per i siti esterni: su claude.ai window.open spesso non funziona
+const registroUrl = () => { const u = S.registro === 'altro' ? S.registroUrl : (REGISTRI[S.registro] || {}).u; return /^https:\/\//i.test(u || '') ? u : ''; };
+function openRegistro(){ toast('Scrivi il link del registro nelle Opzioni ⚙️'); location.hash = 'impostazioni'; }
 async function importRegistro(){
   const subs = await subjects();
   const ov = modal(`<h2>📋 Copia dal registro</h2>
@@ -1492,7 +1595,7 @@ async function statoOffline(){
 async function mostraOffline(){
   const el = $('#offst'); if (!el) return;
   const s = await statoOffline();
-  if (!s){ el.innerHTML = '⚠️ Per usarla senza internet, apri l\'app dal link e installala sulla schermata Home.'; $('#offbtn').style.display = 'none'; return; }
+  if (!s){ el.innerHTML = IN_ART ? 'ℹ️ Questa è la copia su claude.ai e funziona solo con internet. Per l\'uso offline installa l\'app dal link <b>paola-marinelli.github.io/zaino-smart</b>.' : '⚠️ Per usarla senza internet, apri l\'app dal link e installala sulla schermata Home.'; $('#offbtn').style.display = 'none'; return; }
   el.innerHTML = s.ok === s.tot ? '✅ <b>Pronta!</b> L\'app funziona anche senza internet.' : `⏳ In preparazione: ${s.ok} file su ${s.tot}.`;
   $('#offbtn').style.display = s.ok === s.tot ? 'none' : '';
 }
@@ -1524,7 +1627,7 @@ async function importBackup(input){
   const f = input.files[0]; if (!f) return;
   try {
     const j = JSON.parse(await f.text()); if (j.app !== 'zainosmart') throw new Error('Questo file non è una copia di Zaino Smart.');
-    if (!confirm(`Caricare la copia (${j.items.length} elementi)? Quello che hai già resta, le cose uguali vengono aggiornate.`)) return;
+    if (!await conferma(`Caricare la copia (${j.items.length} elementi)? Quello che hai già resta, le cose uguali vengono aggiornate.`)) return;
     for (const o of j.items){
       for (const k in o) if (o[k] && typeof o[k] === 'object' && '__blob' in o[k]){ const b = await (await fetch(o[k].data)).blob(); o[k] = new File([b], o[k].name || 'file', {type: o[k].__blob}); }
       await put(o);
