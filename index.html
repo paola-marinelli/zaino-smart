@@ -260,6 +260,12 @@ const $ = s => document.querySelector(s);
 // la stessa app gira anche come copia su claude.ai: lì salvataggi e microfono passano dai permessi di claude.ai
 const IN_ART = !!(window.claude && typeof window.claude.use === 'function');
 const CAP = {downloads: null, dictation: null};
+// su claude.ai alcune librerie non si possono pubblicare come file: lì arrivano dal CDN ammesso (cdnjs), stesse versioni
+const CDN_ART = {
+  'lib/mammoth.browser.min.js': 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+  'lib/pdf.worker.min.js': 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+};
+const libUrl = f => (IN_ART && CDN_ART[f]) || f;
 if (IN_ART){
   window.claude.use('downloads').then(d => CAP.downloads = d).catch(() => {});
   window.claude.use('dictation').then(d => { CAP.dictation = d; if (d) collegaDettato(d); }).catch(() => {});
@@ -504,8 +510,22 @@ async function toCanvas(src){
 function cleanText(t){
   return t.replace(/\r/g, '').replace(/-\n(\p{L})/gu, '$1').replace(/([^\n.!?:»"])\n(?!\n)/g, '$1 ').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
 }
+// nella copia su claude.ai la foto la legge Claude (il vocabolario di Tesseract lì non si può pubblicare)
+async function ocrClaude(c, say, statusEl){
+  const s = await window.claude.use('sample');
+  if (!s) throw new Error('Qui la lettura delle foto non è disponibile. Usa l\'app dal link GitHub. 📲');
+  say('🔎 Sto leggendo la pagina...', null);
+  const img = await new Promise(r => c.toBlob(r, 'image/jpeg', .85));
+  try {
+    const r = await s('Trascrivi tutto il testo scritto in questa foto di una pagina di scuola, esattamente come è scritto, in italiano. Lascia una riga vuota tra un paragrafo e l\'altro. Rispondi solo con il testo trascritto, senza commenti. Se non c\'è testo leggibile rispondi con una riga vuota.', {images: [img], modelTier: 'default'});
+    return cleanText(r.text || '');
+  } catch (e){
+    throw new Error(e && e.code === 'not_granted' ? 'Serve il permesso per far leggere la foto a Claude.' : 'Non sono riuscito a leggere la foto. Riprova tra poco.');
+  } finally { if (statusEl) statusEl.innerHTML = ''; }
+}
 async function ocr(src, statusEl){
   const say = (msg, p) => { if (statusEl) statusEl.innerHTML = `<p>${msg}</p>${p != null ? `<div class="progress"><div style="width:${Math.round(p * 100)}%"></div></div>` : ''}`; };
+  if (IN_ART) return ocrClaude(await toCanvas(src), say, statusEl);
   say('⏳ Preparo il lettore di testo... (la prima volta ci mette un po\')', 0);
   await loadScript('lib/tesseract.min.js');
   const c = await toCanvas(src);
@@ -1198,7 +1218,7 @@ async function importAllegati(input, sid){
       if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) o = {...base, id: uid(), kind: 'book', title, type: 'pdf', blob: f, page: 1};
       else if (f.type.startsWith('image/') && !/heic|heif/i.test(f.type)) o = {...await makeSheet(f, sid, title), ...base};
       else if (/\.docx$/i.test(f.name)){
-        await loadScript('lib/mammoth.browser.min.js');
+        await loadScript(libUrl('lib/mammoth.browser.min.js'));
         const r = await mammoth.convertToHtml({arrayBuffer: await f.arrayBuffer()});
         const s = await get(sid);
         o = {...base, id: uid(), kind: 'doc', title, html: r.value, foglio: isMath(s) ? 'quadretti' : 'righe', updated: Date.now()};
@@ -1299,7 +1319,7 @@ async function vLibro(m, id){
     <div id="bstatus"></div><div id="bookview" class="bookview"><p style="padding:20px">⏳ Apro il libro...</p></div>`;
   try {
     if (pdf && pdfBookId !== id){
-      await loadScript(PDFJS + 'pdf.min.js'); pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js';
+      await loadScript(PDFJS + 'pdf.min.js'); pdfjsLib.GlobalWorkerOptions.workerSrc = libUrl(PDFJS + 'pdf.worker.min.js');
       pdfDoc = await pdfjsLib.getDocument({data: await curBook.blob.arrayBuffer()}).promise; pdfBookId = id;
     }
     await drawBook();
